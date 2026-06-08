@@ -1,0 +1,4862 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ChainTrust Console Replica</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --radius: 18px;
+      --bg: #fffcf6;
+      --fg: #1d1c20;
+      --muted: #5c6370;
+      --line: #1218271a;
+      --panel: #ffffffd1;
+      --panel-strong: #ffffffe8;
+      --panel-muted: #f7f8fc;
+      --shell: #ffffffad;
+      --primary: #171719;
+      --primary-fg: #fefefe;
+      --accent: #3a62ff24;
+      --accent-fg: #2039a8;
+      --identifier: #5b688f;
+      --success: #2d9f63;
+      --warning: #e8a42b;
+      --danger: #e35d4d;
+      --info: #4c6fff;
+      --shadow-soft: 0 10px 40px #1118270d;
+      --shadow-strong: 0 20px 60px #11182714;
+      --font-display: "Plus Jakarta Sans", "PingFang SC", "Microsoft YaHei", sans-serif;
+      --font-body: "Manrope", "PingFang SC", "Microsoft YaHei", sans-serif;
+      --font-mono: "IBM Plex Mono", "SF Mono", Monaco, monospace;
+    }
+
+    body.dark {
+      --bg: #111318;
+      --fg: #f5f7fb;
+      --muted: #9ea5b3;
+      --line: #ffffff1a;
+      --panel: #12161dd6;
+      --panel-strong: #181e27eb;
+      --panel-muted: #ffffff0f;
+      --shell: #0e1219c7;
+      --primary: #f5f7fb;
+      --primary-fg: #171719;
+      --accent: #6784ff29;
+      --accent-fg: #d7e2ff;
+      --identifier: #b8c6ee;
+      --shadow-soft: 0 14px 34px #02061757;
+      --shadow-strong: 0 24px 56px #02061775;
+    }
+
+    * { box-sizing: border-box; }
+    html { color-scheme: light; }
+    body.dark { color-scheme: dark; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--fg);
+      background: var(--bg);
+      font-family: var(--font-body);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button, input, select, textarea {
+      font: inherit;
+      color: inherit;
+    }
+
+    button { cursor: pointer; }
+
+    .background-plane {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .background-plane::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(54rem 30rem at 88% 10%, #6784ff26, transparent 72%),
+        radial-gradient(40rem 28rem at 10% 90%, #f5ce8e1c, transparent 74%),
+        linear-gradient(#fffdf8, #faf6ef 46%, #f2ede5);
+    }
+
+    body.dark .background-plane::before {
+      background:
+        radial-gradient(52rem 30rem at 84% 12%, #6784ff33, transparent 72%),
+        radial-gradient(38rem 26rem at 12% 86%, #98a2b817, transparent 72%),
+        linear-gradient(#141820, #10141b 44%, #0a0e14);
+    }
+
+    .background-plane svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      opacity: .075;
+      fill: none;
+      stroke: #5b688f;
+      stroke-width: 1.2;
+    }
+
+    body.dark .background-plane svg { opacity: .05; stroke: #b8c6ee; }
+
+    .hide { display: none !important; }
+
+    .icon {
+      width: 18px;
+      height: 18px;
+      flex: 0 0 auto;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+    }
+
+    .auth-wrap {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    .auth-card {
+      width: min(440px, 100%);
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      background: var(--panel);
+      box-shadow: var(--shadow-strong);
+      backdrop-filter: blur(24px);
+      padding: 38px;
+    }
+
+    .brand-mark {
+      width: 56px;
+      height: 56px;
+      margin: 0 auto 18px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: color-mix(in srgb, var(--bg) 78%, transparent);
+      box-shadow: 0 6px 18px #11182710;
+    }
+
+    .brand-mark svg {
+      width: 36px;
+      height: 36px;
+    }
+
+    .auth-title {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: 25px;
+      line-height: 1.2;
+      text-align: center;
+      letter-spacing: 0;
+    }
+
+    .auth-subtitle {
+      margin: 8px 0 32px;
+      color: var(--muted);
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .field label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .16em;
+    }
+
+    .input-shell {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 46px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--panel-strong);
+      padding: 0 13px;
+      transition: border-color .18s, box-shadow .18s;
+    }
+
+    .input-shell:focus-within {
+      border-color: #6784ff80;
+      box-shadow: 0 0 0 4px #6784ff1c;
+    }
+
+    .input-shell input,
+    .input-shell select,
+    .input-shell textarea {
+      width: 100%;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      min-width: 0;
+    }
+
+    .input-shell textarea {
+      min-height: 84px;
+      resize: vertical;
+      padding: 12px 0;
+    }
+
+    .primary-btn,
+    .ghost-btn,
+    .chip-btn,
+    .icon-btn {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      min-height: 42px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-weight: 700;
+      transition: transform .18s, border-color .18s, background .18s, opacity .18s;
+    }
+
+    .primary-btn {
+      width: 100%;
+      color: var(--primary-fg);
+      background: var(--primary);
+      padding: 0 18px;
+    }
+
+    .ghost-btn {
+      background: var(--panel);
+      padding: 0 15px;
+    }
+
+    .chip-btn {
+      min-height: 34px;
+      padding: 0 12px;
+      color: var(--muted);
+      background: var(--panel);
+      font-size: 13px;
+    }
+
+    .icon-btn {
+      width: 42px;
+      background: var(--panel);
+    }
+
+    .primary-btn:hover,
+    .ghost-btn:hover,
+    .chip-btn:hover,
+    .icon-btn:hover {
+      transform: translateY(-1px);
+      border-color: #6784ff66;
+    }
+
+    .chip-btn.active {
+      color: var(--accent-fg);
+      border-color: #3a62ff2e;
+      background: var(--accent);
+    }
+
+    .auth-foot {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      margin-top: 16px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .link {
+      border: 0;
+      padding: 0;
+      color: var(--fg);
+      background: none;
+      font-weight: 700;
+    }
+
+    .alert {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin: 0 0 16px;
+      border: 1px solid color-mix(in srgb, var(--danger) 32%, transparent);
+      border-radius: 14px;
+      background: color-mix(in srgb, var(--danger) 9%, transparent);
+      color: var(--danger);
+      padding: 12px;
+      font-size: 14px;
+    }
+
+    .app-wrap {
+      min-height: 100vh;
+      padding: 22px;
+    }
+
+    .console-shell {
+      position: relative;
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr);
+      min-height: calc(100vh - 44px);
+      border: 1px solid #ffffff99;
+      border-radius: 28px;
+      background: var(--shell);
+      box-shadow: var(--shadow-strong);
+      backdrop-filter: blur(24px);
+      overflow: hidden;
+    }
+
+    body.dark .console-shell { border-color: #ffffff1a; }
+
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+      border-right: 1px solid var(--line);
+      padding: 22px 18px;
+    }
+
+    .sidebar-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 6px;
+    }
+
+    .sidebar-head .brand-mark {
+      margin: 0;
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+    }
+
+    .sidebar-head .brand-mark svg {
+      width: 29px;
+      height: 29px;
+    }
+
+    .brand-name {
+      font-family: var(--font-display);
+      font-weight: 800;
+      line-height: 1.1;
+    }
+
+    .brand-caption {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 3px;
+    }
+
+    .nav-group-label {
+      margin: 18px 10px 8px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+    }
+
+    .nav-list {
+      display: grid;
+      gap: 6px;
+    }
+
+    .nav-btn {
+      width: 100%;
+      min-height: 43px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid transparent;
+      border-radius: 14px;
+      background: transparent;
+      color: var(--muted);
+      padding: 0 12px;
+      text-align: left;
+      font-weight: 700;
+    }
+
+    .nav-btn:hover,
+    .nav-btn.active {
+      color: var(--fg);
+      border-color: var(--line);
+      background: var(--panel);
+    }
+
+    .nav-btn.active {
+      background: var(--accent);
+      color: var(--accent-fg);
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      display: grid;
+      gap: 10px;
+    }
+
+    .user-pill {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--panel);
+      padding: 10px;
+    }
+
+    .avatar {
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      border-radius: 12px;
+      color: var(--primary-fg);
+      background: var(--primary);
+      font-weight: 800;
+    }
+
+    .main {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .topbar {
+      min-height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      border-bottom: 1px solid var(--line);
+      padding: 16px 22px;
+    }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .searchbar {
+      width: min(440px, 100%);
+      min-height: 42px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--panel);
+      padding: 0 13px;
+    }
+
+    .searchbar input {
+      width: 100%;
+      border: 0;
+      outline: 0;
+      background: transparent;
+    }
+
+    .content {
+      display: grid;
+      gap: 18px;
+      padding: 22px;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: var(--panel);
+      box-shadow: var(--shadow-soft);
+      backdrop-filter: blur(12px);
+    }
+
+    .page-header {
+      padding: 24px;
+    }
+
+    .header-flex {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: flex-end;
+    }
+
+    .kicker {
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .24em;
+      text-transform: uppercase;
+    }
+
+    h1, h2, h3 {
+      font-family: var(--font-display);
+      margin: 0;
+      letter-spacing: 0;
+    }
+
+    h1 {
+      font-size: clamp(30px, 4vw, 48px);
+      line-height: 1.05;
+    }
+
+    .desc {
+      max-width: 780px;
+      margin: 12px 0 0;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .stat {
+      min-width: 130px;
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--info);
+      border-radius: 16px;
+      background: var(--panel-strong);
+      padding: 12px 14px;
+    }
+
+    .stat span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+    }
+
+    .stat strong {
+      display: block;
+      margin-top: 5px;
+      font-size: 24px;
+    }
+
+    .filters {
+      display: grid;
+      grid-template-columns: minmax(220px, 1fr) repeat(3, minmax(140px, 180px));
+      gap: 12px;
+      padding: 16px;
+    }
+
+    .table-wrap {
+      overflow: auto;
+      border-radius: 24px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 920px;
+    }
+
+    th, td {
+      border-bottom: 1px solid var(--line);
+      padding: 15px 16px;
+      text-align: left;
+      vertical-align: middle;
+      font-size: 14px;
+    }
+
+    th {
+      color: var(--muted);
+      background: color-mix(in srgb, var(--panel-muted) 86%, transparent);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    tr:last-child td { border-bottom: 0; }
+    tbody tr { transition: background .18s; }
+    tbody tr:hover { background: color-mix(in srgb, var(--accent) 45%, transparent); }
+
+    .mono {
+      font-family: var(--font-mono);
+      color: var(--identifier);
+      font-size: 13px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 26px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      padding: 0 10px;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .badge.low { color: #1d6a43; background: #2d9f6314; border-color: #2d9f6338; }
+    .badge.moderate { color: #9b6400; background: #e8a42b18; border-color: #e8a42b40; }
+    .badge.high { color: #a62618; background: #e35d4d18; border-color: #e35d4d40; }
+    .badge.severe { color: #842029; background: #ff4d6d1c; border-color: #ff4d6d55; }
+    .badge.screening { color: var(--accent-fg); background: var(--accent); border-color: #3a62ff36; }
+    .badge.completed { color: #1d6a43; background: #2d9f6314; border-color: #2d9f6338; }
+    .badge.failed { color: #a62618; background: #e35d4d18; border-color: #e35d4d40; }
+
+    body.dark .badge.low { color: #b4f3d2; }
+    body.dark .badge.moderate { color: #fff0c6; }
+    body.dark .badge.high,
+    body.dark .badge.severe,
+    body.dark .badge.failed { color: #fecaca; }
+
+    .progress {
+      width: 112px;
+      height: 8px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: var(--panel-muted);
+    }
+
+    .progress i {
+      display: block;
+      height: 100%;
+      width: var(--value);
+      border-radius: inherit;
+      background: linear-gradient(90deg, #6784ff, #2d9f63);
+    }
+
+    .row-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .split {
+      display: grid;
+      grid-template-columns: 1.05fr .95fr;
+      gap: 18px;
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .panel-body { padding: 20px; }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .metric {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--panel-strong);
+      padding: 15px;
+    }
+
+    .metric span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .metric strong {
+      display: block;
+      margin-top: 8px;
+      font-size: 22px;
+    }
+
+    .timeline {
+      display: grid;
+      gap: 14px;
+    }
+
+    .event {
+      display: grid;
+      grid-template-columns: 12px 1fr;
+      gap: 12px;
+    }
+
+    .event i {
+      width: 10px;
+      height: 10px;
+      margin-top: 6px;
+      border-radius: 999px;
+      background: var(--info);
+      box-shadow: 0 0 0 4px #6784ff1c;
+    }
+
+    .event strong {
+      display: block;
+      font-size: 14px;
+    }
+
+    .event span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .admin-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .admin-tile {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: var(--panel-strong);
+      padding: 18px;
+    }
+
+    .admin-tile .tile-icon {
+      width: 46px;
+      height: 46px;
+      display: grid;
+      place-items: center;
+      border-radius: 16px;
+      background: var(--panel-muted);
+      color: var(--muted);
+    }
+
+    .admin-tile p {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background: #11182766;
+      backdrop-filter: blur(8px);
+    }
+
+    .modal {
+      width: min(560px, 100%);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: var(--panel-strong);
+      box-shadow: var(--shadow-strong);
+      overflow: hidden;
+    }
+
+    .modal-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 22px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .modal-head p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .modal-body {
+      padding: 22px;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      padding: 0 22px 22px;
+    }
+
+    .toast {
+      position: fixed;
+      right: 24px;
+      top: 24px;
+      z-index: 30;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--panel-strong);
+      box-shadow: var(--shadow-soft);
+      padding: 13px 15px;
+      transform: translateY(-20px);
+      opacity: 0;
+      pointer-events: none;
+      transition: transform .2s, opacity .2s;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    @media (max-width: 980px) {
+      .console-shell { grid-template-columns: 1fr; }
+      .sidebar {
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .nav-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .filters,
+      .split {
+        grid-template-columns: 1fr;
+      }
+      .topbar {
+        align-items: stretch;
+        flex-direction: column;
+      }
+      .searchbar { width: 100%; }
+    }
+
+    @media (max-width: 620px) {
+      .app-wrap { padding: 0; }
+      .console-shell {
+        min-height: 100vh;
+        border-radius: 0;
+      }
+      .content,
+      .topbar,
+      .sidebar { padding: 16px; }
+      .header-flex { align-items: flex-start; flex-direction: column; }
+      .nav-list,
+      .admin-grid,
+      .metric-grid { grid-template-columns: 1fr; }
+      .auth-card { padding: 28px 22px; }
+    }
+
+    .app-wrap {
+      padding: 10px 24px 24px 84px;
+      background:
+        linear-gradient(90deg, #fbf6ed 0 58%, #f2f4fb 100%),
+        var(--bg);
+    }
+
+    body.dark .app-wrap {
+      background:
+        linear-gradient(90deg, #121419 0 58%, #151923 100%),
+        var(--bg);
+    }
+
+    .console-shell {
+      display: block;
+      min-height: calc(100vh - 34px);
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+      backdrop-filter: none;
+      overflow: visible;
+    }
+
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 15;
+      width: 70px;
+      height: 100vh;
+      align-items: center;
+      border-right: 1px solid #ece9e2;
+      background: #ffffffd8;
+      padding: 14px 10px;
+      box-shadow: 18px 0 44px #1118270a;
+    }
+
+    body.dark .sidebar {
+      border-color: var(--line);
+      background: #11161dd8;
+    }
+
+    .sidebar-head {
+      padding: 0;
+    }
+
+    .sidebar-head .brand-mark {
+      width: 42px;
+      height: 42px;
+      border-radius: 999px;
+      color: #355cff;
+      background: #fff;
+    }
+
+    .sidebar-head .brand-mark + div,
+    .nav-group-label,
+    .sidebar-footer,
+    .nav-btn span {
+      display: none;
+    }
+
+    .nav-list {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+      margin-top: 18px;
+    }
+
+    .nav-btn {
+      width: 42px;
+      height: 42px;
+      min-height: 42px;
+      justify-content: center;
+      padding: 0;
+      border-radius: 999px;
+      color: #6b7280;
+      font-size: 0;
+    }
+
+    .nav-btn .icon {
+      width: 19px;
+      height: 19px;
+      font-size: 16px;
+    }
+
+    .nav-btn.active {
+      color: #4c6fff;
+      border-color: #dbe4ff;
+      background: #eaf0ff;
+    }
+
+    .main {
+      display: block;
+    }
+
+    .topbar {
+      min-height: 82px;
+      margin: 0 0 18px;
+      border: 1px solid #e7e8ee;
+      border-radius: 24px;
+      background: #ffffffd8;
+      box-shadow: 0 18px 70px #1118270b;
+      padding: 18px 18px;
+      backdrop-filter: blur(18px);
+    }
+
+    body.dark .topbar {
+      background: var(--panel);
+      border-color: var(--line);
+    }
+
+    .topbar-title .kicker {
+      margin-bottom: 6px;
+      font-size: 11px;
+      letter-spacing: .32em;
+    }
+
+    .topbar-title h1 {
+      font-size: 24px;
+      line-height: 1.05;
+    }
+
+    .topbar-actions .ghost-icon {
+      width: 34px;
+      height: 34px;
+      border: 0;
+      background: transparent;
+      color: #4b5565;
+      border-radius: 999px;
+    }
+
+    .topbar-user {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      margin-left: 8px;
+      color: #4b5565;
+      font-weight: 700;
+    }
+
+    .topbar-user .avatar {
+      width: 32px;
+      height: 32px;
+      color: #6b7280;
+      background: #f3f0eb;
+      border-radius: 999px;
+      font-size: 12px;
+    }
+
+    .content {
+      padding: 0;
+      gap: 18px;
+    }
+
+    .ct-page-header {
+      min-height: 134px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 18px 18px;
+    }
+
+    .ct-page-header > div {
+      width: 100%;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    .ct-page-header h1 {
+      font-size: 45px;
+      line-height: 1.05;
+    }
+
+    .ct-page-header .desc {
+      font-size: 15px;
+      margin-top: 12px;
+    }
+
+    .ct-primary-action {
+      width: auto;
+      min-height: 32px;
+      border-radius: 999px;
+      padding: 0 18px;
+      font-size: 13px;
+      box-shadow: 0 3px 10px #11182721;
+    }
+
+    .ct-filter-panel {
+      display: grid;
+      grid-template-columns: 1.25fr .9fr .9fr;
+      gap: 14px;
+      padding: 20px;
+    }
+
+    .ct-filter-panel .field {
+      margin: 0;
+    }
+
+    .ct-filter-panel .input-shell {
+      min-height: 42px;
+      border-radius: 22px;
+      background: #fffdf9;
+    }
+
+    .ct-table {
+      padding: 26px 30px;
+    }
+
+    .ct-table table {
+      min-width: 1500px;
+    }
+
+    .ct-table th,
+    .ct-table td {
+      padding: 14px 10px;
+      font-size: 13px;
+    }
+
+    .ct-table th {
+      color: #9aa3b2;
+      background: transparent;
+    }
+
+    .ct-table .address-cell strong {
+      display: block;
+      font-family: var(--font-mono);
+      letter-spacing: .02em;
+    }
+
+    .ct-table tbody tr.detail-row {
+      cursor: pointer;
+    }
+
+    .ct-table tbody tr.detail-row:hover {
+      background: #f8fbff;
+    }
+
+    .tiny-pill {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 4px;
+      background: #eaf0ff;
+      color: #5875d9;
+      padding: 1px 5px;
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .rule-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      max-width: 360px;
+    }
+
+    .rule-pill {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid #ff7a45;
+      border-radius: 999px;
+      color: #f25f2c;
+      background: #fff6ef;
+      padding: 1px 6px;
+      font-size: 11px;
+      line-height: 1.25;
+      white-space: nowrap;
+    }
+
+    .rule-pill.warn {
+      border-color: #ffc53d;
+      color: #d99500;
+      background: #fff9df;
+    }
+
+    .rule-more {
+      display: inline-flex;
+      align-items: center;
+      color: #555;
+      border: 1px solid #d8dce5;
+      border-radius: 999px;
+      padding: 1px 6px;
+      font-size: 11px;
+      background: #fff;
+    }
+
+    .action-refresh {
+      width: 30px;
+      height: 30px;
+      min-height: 30px;
+      border-radius: 999px;
+      background: #fff;
+      border-color: #edf0f4;
+      box-shadow: 0 2px 8px #1118270b;
+    }
+
+    .ct-detail-shell {
+      display: grid;
+      gap: 22px;
+    }
+
+    .back-btn {
+      width: max-content;
+      border: 0;
+      background: transparent;
+      color: #6b7280;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 0;
+      font-weight: 700;
+    }
+
+    .detail-summary {
+      border-radius: 0;
+      background: #fff;
+      padding: 30px 32px 24px;
+      box-shadow: none;
+    }
+
+    body.dark .detail-summary {
+      background: var(--panel);
+    }
+
+    .detail-summary-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      border-bottom: 1px solid #e9ecf1;
+      padding-bottom: 18px;
+    }
+
+    .detail-address {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 18px;
+      font-weight: 500;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 36px 90px;
+      padding-top: 22px;
+    }
+
+    .detail-kv span {
+      display: block;
+      color: #8d96a6;
+      margin-bottom: 8px;
+    }
+
+    .detail-kv strong {
+      font-weight: 600;
+    }
+
+    .segmented {
+      display: inline-flex;
+      width: max-content;
+      border: 1px solid #e6e8ee;
+      border-radius: 999px;
+      background: #fff;
+      padding: 4px;
+      box-shadow: 0 2px 8px #1118270b;
+    }
+
+    .segmented button {
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      padding: 7px 22px;
+      color: #7a8392;
+      font-weight: 800;
+    }
+
+    .segmented button.active {
+      color: #4b5565;
+      background: #eaf0ff;
+    }
+
+    .rule-carousel {
+      display: flex;
+      gap: 18px;
+      overflow: hidden;
+      padding-bottom: 6px;
+    }
+
+    .rule-card {
+      flex: 0 0 420px;
+      min-height: 138px;
+      border-radius: 20px;
+      border-left: 8px solid #c9ddf3;
+      background: #fff;
+      box-shadow: 0 10px 34px #1118270a;
+      padding: 38px 28px;
+    }
+
+    .rule-card.hot {
+      border-left-color: #f66b21;
+    }
+
+    .rule-card h3 {
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+
+    .exposure-panel {
+      border-radius: 0;
+      background: #fff;
+      padding: 18px 20px 28px;
+    }
+
+    .exposure-panel h2 {
+      font-family: var(--font-body);
+      font-size: 15px;
+      margin-bottom: 18px;
+    }
+
+    .exposure-group {
+      background: #f7f8fb;
+      padding: 12px 24px;
+      color: #4b5565;
+      margin-bottom: 8px;
+    }
+
+    .exposure-panel table {
+      min-width: 900px;
+    }
+
+    .exposure-panel th,
+    .exposure-panel td {
+      padding: 14px 24px;
+      font-size: 14px;
+    }
+
+    .amount {
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .rl-page {
+      --rl-bg: #f8fafc;
+      --rl-text: #1e293b;
+      --rl-muted: #64748b;
+      --rl-soft: #f1f5f9;
+      --rl-line: #e2e8f0;
+      --rl-blue: #2563eb;
+      --rl-blue-soft: #eff6ff;
+      color: var(--rl-text);
+      font-family: Inter, var(--font-body);
+    }
+
+    .rl-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      width: max-content;
+      border: 0;
+      background: transparent;
+      color: #64748b;
+      padding: 0;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .rl-breadcrumb {
+      display: inline-flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      color: #94a3b8;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .rl-breadcrumb button {
+      border: 0;
+      background: transparent;
+      color: #64748b;
+      padding: 0;
+      font: inherit;
+    }
+
+    .rl-breadcrumb button:hover {
+      color: #2563eb;
+    }
+
+    .rl-breadcrumb-current {
+      color: #0f172a;
+    }
+
+    .rl-breadcrumb-result {
+      color: #2563eb;
+    }
+
+    .rl-hero {
+      border: 1px solid var(--rl-line);
+      border-radius: 14px;
+      background:
+        radial-gradient(#e2e8f0 .6px, transparent .6px) 0 0 / 20px 20px,
+        linear-gradient(135deg, #fff 0%, #f1f5f9 100%);
+      box-shadow: 0 1px 3px rgba(15, 23, 42, .06);
+      padding: 28px;
+    }
+
+    .rl-hero-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      align-items: flex-start;
+    }
+
+    .rl-address-line {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .rl-address {
+      margin: 0;
+      color: #1e293b;
+      font-family: var(--font-mono);
+      font-size: clamp(20px, 2vw, 25px);
+      line-height: 1.25;
+      font-weight: 800;
+      overflow-wrap: anywhere;
+    }
+
+    .rl-copy {
+      border: 0;
+      background: transparent;
+      color: #94a3b8;
+      padding: 4px;
+      border-radius: 8px;
+    }
+
+    .rl-meta {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+
+    .rl-last {
+      color: #94a3b8;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .rl-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      border-radius: 999px;
+      border: 1px solid;
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      white-space: nowrap;
+    }
+
+    .rl-badge.low { color: #15803d; background: #ecfdf5; border-color: #bbf7d0; }
+    .rl-badge.moderate { color: #92400e; background: #fef3c7; border-color: #fde68a; }
+    .rl-badge.high { color: #c2410c; background: #fff7ed; border-color: #fed7aa; }
+    .rl-badge.severe { color: #dc2626; background: #fef2f2; border-color: #fecaca; }
+
+    .rl-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid #dbeafe;
+      border-radius: 999px;
+      background: #eff6ff;
+      color: #2563eb;
+      padding: 5px 10px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .rl-grid {
+      display: grid;
+      gap: 24px;
+      margin-top: 24px;
+    }
+
+    .rl-three {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .rl-card {
+      border: 1px solid var(--rl-line);
+      border-radius: 14px;
+      background: #fff;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, .06);
+      overflow: hidden;
+    }
+
+    .rl-card-pad {
+      padding: 22px;
+    }
+
+    .rl-card-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 22px;
+      color: #1e293b;
+      font-size: 16px;
+      font-weight: 800;
+    }
+
+    .rl-title-icon {
+      display: inline-grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 7px;
+      color: var(--rl-blue);
+      background: var(--rl-blue-soft);
+    }
+
+    .rl-kv-stack {
+      display: grid;
+      gap: 18px;
+    }
+
+    .rl-kv label {
+      display: block;
+      margin-bottom: 6px;
+      color: #94a3b8;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .rl-kv strong {
+      color: #1e293b;
+      font-size: 15px;
+      font-weight: 800;
+      overflow-wrap: anywhere;
+    }
+
+    .rl-flow-bar {
+      display: flex;
+      height: 8px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #f1f5f9;
+    }
+
+    .rl-flow-bar span:first-child { width: 50%; background: #ca8a04; }
+    .rl-flow-bar span:last-child { width: 50%; background: #3b82f6; }
+
+    .rl-entity-lockup {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+    }
+
+    .rl-entity-avatar {
+      width: 48px;
+      height: 48px;
+      display: grid;
+      place-items: center;
+      border: 1px solid #f1f5f9;
+      border-radius: 10px;
+      background: #f8fafc;
+      color: #475569;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .rl-donut-layout {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+    }
+
+    .rl-donut {
+      position: relative;
+      flex: 0 0 128px;
+      width: 128px;
+      height: 128px;
+    }
+
+    .rl-donut svg {
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+    }
+
+    .rl-donut-center {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-content: center;
+      text-align: center;
+    }
+
+    .rl-donut-center span {
+      color: #94a3b8;
+      font-size: 9px;
+      font-weight: 900;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .rl-donut-center strong {
+      color: #1e293b;
+      font-size: 16px;
+      line-height: 1.1;
+    }
+
+    .rl-token-list {
+      display: grid;
+      flex: 1;
+      gap: 12px;
+    }
+
+    .rl-token-row {
+      display: grid;
+      grid-template-columns: 44px minmax(80px, 1fr) 34px 52px;
+      align-items: center;
+      gap: 10px;
+      font-size: 12px;
+    }
+
+    .rl-token-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #3b82f6;
+    }
+
+    .rl-bar {
+      height: 6px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #f1f5f9;
+    }
+
+    .rl-bar i {
+      display: block;
+      width: var(--w);
+      height: 100%;
+      border-radius: inherit;
+      background: var(--c, #3b82f6);
+    }
+
+    .rl-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--rl-line);
+      margin-top: 24px;
+    }
+
+    .rl-tab {
+      border: 0;
+      border-bottom: 2px solid transparent;
+      background: transparent;
+      color: #94a3b8;
+      padding: 14px 24px;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .rl-tab.active {
+      color: var(--rl-blue);
+      border-color: var(--rl-blue);
+    }
+
+    .rl-rules {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      margin-top: 18px;
+    }
+
+    .rl-rule-card {
+      position: relative;
+      min-height: 144px;
+      border: 1px solid var(--rl-line);
+      border-radius: 14px;
+      background: #fff;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, .06);
+      padding: 22px;
+      overflow: hidden;
+    }
+
+    .rl-rule-card:before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 4px;
+      background: #f59e0b;
+    }
+
+    .rl-rule-card.high:before { background: #f97316; }
+    .rl-rule-card.severe:before { background: #ef4444; }
+
+    .rl-rule-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 58px;
+      margin-bottom: 20px;
+    }
+
+    .rl-rule-head h3 {
+      color: #1e293b;
+      font-size: 14px;
+      line-height: 1.45;
+      font-weight: 800;
+    }
+
+    .rl-empty {
+      grid-column: 1 / -1;
+      border: 1px dashed var(--rl-line);
+      border-radius: 14px;
+      background: #fff;
+      color: #94a3b8;
+      padding: 26px;
+      font-size: 14px;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .rl-exposure {
+      margin-top: 32px;
+      border: 1px solid var(--rl-line);
+      border-radius: 14px;
+      background: #fff;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, .06);
+      overflow: hidden;
+    }
+
+    .rl-exposure-body {
+      padding: 22px;
+    }
+
+    .rl-exposure-title {
+      margin: 0 0 22px;
+      color: #1e293b;
+      font-size: 18px;
+      font-weight: 900;
+    }
+
+    .rl-accordion-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border: 1px solid var(--rl-line);
+      border-radius: 10px 10px 0 0;
+      background: #f8fafc;
+      padding: 12px 16px;
+    }
+
+    .rl-category-pill {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 6px;
+      background: #e2e8f0;
+      color: #334155;
+      padding: 5px 9px;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .rl-table-wrap {
+      overflow-x: auto;
+    }
+
+    .rl-table {
+      width: 100%;
+      min-width: 900px;
+      border-collapse: collapse;
+    }
+
+    .rl-table th {
+      border-bottom: 1px solid #f1f5f9;
+      color: #94a3b8;
+      background: #fff;
+      padding: 12px 16px;
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      text-align: left;
+    }
+
+    .rl-table td {
+      border-bottom: 1px solid #f8fafc;
+      padding: 18px 16px;
+      color: #475569;
+      font-size: 14px;
+      vertical-align: middle;
+    }
+
+    .rl-table tr:last-child td { border-bottom: 0; }
+    .rl-right { text-align: right !important; }
+
+    .rl-contribution {
+      display: grid;
+      justify-items: end;
+      gap: 5px;
+      max-width: 130px;
+      margin-left: auto;
+    }
+
+    .rl-small {
+      color: #94a3b8;
+      font-size: 10px;
+      line-height: 1.25;
+    }
+
+    .rl-flow-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-top: 18px;
+    }
+
+    .rl-flow-card {
+      border: 1px solid #dbe5f2;
+      border-radius: 18px;
+      background: #fff;
+      padding: 26px;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, .05);
+    }
+
+    .rl-flow-card.source {
+      background: #f8fbff;
+      border-color: #bfd0ec;
+    }
+
+    .rl-flow-title {
+      margin: 0 0 22px;
+      color: #222;
+      font-size: 20px;
+      font-weight: 800;
+    }
+
+    .rl-stacked-bar {
+      display: flex;
+      height: 18px;
+      overflow: hidden;
+      border-radius: 3px;
+      background: #d8e2ff;
+      margin-bottom: 30px;
+    }
+
+    .rl-stacked-bar span {
+      width: var(--w);
+      background: var(--c);
+    }
+
+    .rl-flow-legend {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 26px 46px;
+    }
+
+    .rl-flow-legend-item {
+      display: grid;
+      grid-template-columns: 10px 1fr;
+      gap: 10px;
+      align-items: start;
+      font-size: 14px;
+    }
+
+    .rl-flow-legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: var(--c);
+      margin-top: 5px;
+    }
+
+    .rl-flow-legend-value {
+      display: block;
+      color: #7b8494;
+      margin-top: 6px;
+    }
+
+    .rl-flow-table-section {
+      margin-top: 18px;
+      border: 1px solid var(--rl-line);
+      background: #fff;
+      padding: 16px 20px;
+    }
+
+    .rl-flow-group {
+      border-top: 1px solid var(--rl-line);
+      margin-top: 14px;
+      padding-top: 14px;
+    }
+
+    .rl-flow-group:first-child {
+      border-top: 0;
+      margin-top: 0;
+      padding-top: 0;
+    }
+
+    .rl-flow-group-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #f7f8fb;
+      padding: 13px 22px;
+      color: #334155;
+      margin-bottom: 10px;
+    }
+
+    .screening-tabs {
+      display: inline-flex;
+      width: max-content;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #fff;
+      padding: 4px;
+      margin: 0 0 14px;
+      box-shadow: 0 2px 8px #1118270b;
+    }
+
+    .screening-tab {
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      color: #7b8294;
+      padding: 9px 18px;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .screening-tab.active {
+      color: #1f3ab1;
+      background: #eaf0ff;
+    }
+
+    .history-card {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(17, 24, 39, .04);
+    }
+
+    .history-caption {
+      padding: 18px 22px;
+      color: #5c6370;
+      font-size: 12px;
+      border-bottom: 1px solid #f2f4f5;
+    }
+
+    .history-card table {
+      min-width: 720px;
+    }
+
+    .history-card th,
+    .history-card td {
+      padding: 15px 22px;
+      font-size: 13px;
+    }
+
+    .history-card th {
+      color: #8c95a6;
+      background: #fbfcfe;
+      font-size: 10px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+    }
+
+    .history-link {
+      border: 0;
+      background: transparent;
+      color: #2563eb;
+      font-size: 12px;
+      font-weight: 800;
+      padding: 0;
+    }
+
+    .txn-detail-card {
+      border: 1px solid #dbe5f2;
+      border-radius: 18px;
+      background: linear-gradient(180deg, #fff 0%, #fbfdff 100%);
+      box-shadow: 0 16px 34px rgba(30, 41, 59, .06);
+      padding: 26px;
+      margin-top: 16px;
+    }
+
+    .txn-detail-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      align-items: flex-start;
+      padding-bottom: 18px;
+      border-bottom: 1px solid #e6edf6;
+    }
+
+    .txn-profile-kicker {
+      color: #718096;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .txn-hash-line {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      color: #102039;
+      font-size: 20px;
+      font-weight: 850;
+      line-height: 1.35;
+      word-break: break-all;
+    }
+
+    .txn-profile-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .txn-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid #dce8ff;
+      border-radius: 999px;
+      background: #eff6ff;
+      color: #1d4ed8;
+      font-size: 11px;
+      font-weight: 850;
+      padding: 6px 10px;
+      white-space: nowrap;
+    }
+
+    .txn-chip.neutral {
+      border-color: #e5e7eb;
+      background: #f8fafc;
+      color: #475569;
+    }
+
+    .txn-chip.danger {
+      border-color: #fecaca;
+      background: #fff1f2;
+      color: #be123c;
+    }
+
+    .txn-screened-time {
+      color: #718096;
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+      padding-top: 22px;
+    }
+
+    .txn-flow-strip {
+      display: grid;
+      grid-template-columns: minmax(190px, .95fr) minmax(170px, .65fr) minmax(220px, 1fr);
+      gap: 14px;
+      align-items: center;
+      border: 1px solid #dbeafe;
+      border-radius: 16px;
+      background: linear-gradient(90deg, #f8fbff 0%, #fff 58%, #fff9f5 100%);
+      padding: 18px;
+      margin-top: 18px;
+    }
+
+    .txn-flow-node {
+      border: 1px solid #d7e3f4;
+      border-radius: 14px;
+      background: #fff;
+      padding: 14px;
+      min-width: 0;
+      box-shadow: 0 8px 18px rgba(15, 23, 42, .04);
+    }
+
+    .txn-flow-node.risky {
+      border-color: #fed7aa;
+      background: #fffaf5;
+    }
+
+    .txn-flow-label {
+      display: block;
+      color: #8a97aa;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      margin-bottom: 7px;
+    }
+
+    .txn-flow-value {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #102039;
+      font-size: 14px;
+      font-weight: 850;
+      min-width: 0;
+    }
+
+    .txn-flow-value .truncate {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      min-width: 0;
+      max-width: 100%;
+    }
+
+    .txn-flow-edge {
+      display: grid;
+      justify-items: center;
+      gap: 6px;
+      color: #64748b;
+      font-size: 12px;
+      font-weight: 850;
+      text-align: center;
+    }
+
+    .txn-flow-arrow {
+      position: relative;
+      width: 100%;
+      height: 2px;
+      background: linear-gradient(90deg, #3b82f6, #f97316);
+    }
+
+    .txn-flow-arrow:after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      right: -2px;
+      width: 9px;
+      height: 9px;
+      border-top: 2px solid #f97316;
+      border-right: 2px solid #f97316;
+      transform: translateY(-50%) rotate(45deg);
+      background: transparent;
+    }
+
+    .txn-info-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 15px 18px;
+    }
+
+    .txn-info-item strong {
+      word-break: break-word;
+    }
+
+    .txn-mini-copy {
+      width: 24px;
+      height: 24px;
+      flex: 0 0 auto;
+    }
+
+    .txn-rule-stack {
+      display: grid;
+      gap: 16px;
+      margin-top: 18px;
+    }
+
+    .txn-rule-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .txn-rule-card {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      background: #fff;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, .05);
+      padding: 22px 24px 20px;
+      text-align: left;
+    }
+
+    .txn-rule-card.active {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, .12), 0 10px 24px rgba(15, 23, 42, .08);
+      background: #fbfdff;
+    }
+
+    .txn-rule-card:before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 5px;
+      background: #ef4444;
+    }
+
+    .txn-rule-title {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
+      margin-bottom: 18px;
+    }
+
+    .txn-rule-title h3 {
+      margin: 0;
+      color: #172033;
+      font-size: 18px;
+      font-weight: 800;
+    }
+
+    .txn-rule-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .txn-rule-metric {
+      border: 1px solid #edf1f7;
+      border-radius: 10px;
+      background: #fbfcff;
+      padding: 12px;
+    }
+
+    .txn-rule-metric span {
+      display: block;
+      color: #94a3b8;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin-bottom: 6px;
+    }
+
+    .txn-rule-summary {
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      background: #fff;
+      padding: 18px 20px;
+      box-shadow: 0 8px 22px rgba(15, 23, 42, .04);
+    }
+
+    .txn-rule-summary-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .txn-rule-summary-head h3 {
+      margin: 0;
+      color: #172033;
+      font-size: 17px;
+      font-weight: 900;
+    }
+
+    .txn-rule-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .txn-rule-summary-item {
+      border: 1px solid #edf1f7;
+      border-radius: 10px;
+      background: #fbfcff;
+      padding: 12px;
+    }
+
+    .txn-rule-summary-item span {
+      display: block;
+      color: #8a97aa;
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      margin-bottom: 7px;
+    }
+
+    .txn-rule-summary-item strong {
+      color: #172033;
+      font-size: 13px;
+      font-weight: 850;
+    }
+
+    .txn-related-title {
+      color: #475569;
+      font-size: 13px;
+      font-weight: 900;
+      margin: 4px 0 10px;
+    }
+
+    .txn-entity-row {
+      display: grid;
+      grid-template-columns: 1fr 80px 120px auto;
+      gap: 14px;
+      align-items: center;
+      border-top: 1px solid #f1f5f9;
+      padding: 12px 0;
+      color: #334155;
+      font-size: 14px;
+    }
+
+    .txn-entity-row.active {
+      margin-inline: -10px;
+      padding-inline: 10px;
+      border-radius: 10px;
+      background: #eff6ff;
+      border-top-color: transparent;
+    }
+
+    tr.txn-entity-row.active {
+      display: table-row;
+      background: #eff6ff;
+    }
+
+    tr.txn-entity-row.active td {
+      border-top-color: #bfdbfe;
+      border-bottom-color: #bfdbfe;
+    }
+
+    .txn-graph-btn {
+      border: 1px solid #dbeafe;
+      border-radius: 999px;
+      background: #eff6ff;
+      color: #2563eb;
+      padding: 7px 12px;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .txn-graph-panel {
+      border: 1px solid #dbe5f2;
+      border-radius: 16px;
+      background: #fbfdff;
+      margin-top: 18px;
+      padding: 18px;
+      min-height: 300px;
+    }
+
+    .txn-graph-panel.fullscreen {
+      position: fixed;
+      inset: 24px;
+      z-index: 120;
+      display: flex;
+      flex-direction: column;
+      background: #fbfdff;
+      box-shadow: 0 28px 80px rgba(15, 23, 42, .28);
+    }
+
+    .txn-graph-panel.fullscreen .txn-graph-canvas {
+      height: min(62vh, 680px);
+    }
+
+    .txn-graph-empty {
+      min-height: 250px;
+      display: grid;
+      place-items: center;
+      color: #94a3b8;
+      font-weight: 700;
+    }
+
+    .txn-graph-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+
+    .txn-graph-head h3 {
+      margin: 0 0 6px;
+      color: #172033;
+      font-size: 16px;
+    }
+
+    .txn-graph-subtitle {
+      color: #64748b;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .txn-graph-controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .txn-graph-control {
+      border: 1px solid #dbe5f2;
+      border-radius: 999px;
+      background: #fff;
+      color: #64748b;
+      padding: 7px 11px;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .txn-graph-control.active {
+      color: #2563eb;
+      background: #eff6ff;
+      border-color: #bfdbfe;
+    }
+
+    .txn-graph-select {
+      border: 1px solid #dbe5f2;
+      border-radius: 999px;
+      background: #fff;
+      color: #334155;
+      padding: 7px 28px 7px 11px;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .txn-graph-canvas {
+      position: relative;
+      height: 340px;
+      overflow: hidden;
+      border-radius: 12px;
+      cursor: grab;
+      user-select: none;
+      background:
+        radial-gradient(#dbeafe 1px, transparent 1px) 0 0 / 22px 22px,
+        linear-gradient(135deg, #fff, #f8fbff);
+    }
+
+    .txn-graph-canvas.dragging {
+      cursor: grabbing;
+    }
+
+    .txn-graph-stage {
+      position: absolute;
+      inset: 0;
+      transform-origin: 0 0;
+      will-change: transform;
+    }
+
+    .txn-node {
+      position: absolute;
+      min-width: 130px;
+      border: 1px solid #dbeafe;
+      border-radius: 999px;
+      background: #fff;
+      color: #172033;
+      box-shadow: 0 8px 20px rgba(37, 99, 235, .08);
+      padding: 10px 14px;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 800;
+      z-index: 2;
+      cursor: pointer;
+    }
+
+    .txn-node.source { left: 7%; top: 42%; border-color: #bfdbfe; }
+    .txn-node.middle { left: 39%; top: 20%; border-color: #fed7aa; }
+    .txn-node.target { right: 7%; top: 42%; border-color: #fecaca; }
+
+    .txn-node.path-0 { right: 9%; top: 18%; }
+    .txn-node.path-1 { right: 12%; top: 43%; }
+    .txn-node.path-2 { right: 8%; top: 68%; }
+    .txn-node.risk { border-color: #fb923c; }
+    .txn-node.dim {
+      opacity: .46;
+      box-shadow: none;
+    }
+    .txn-node.selected {
+      border-color: #2563eb;
+      box-shadow: 0 10px 28px rgba(37, 99, 235, .18);
+    }
+
+    .txn-edge {
+      position: absolute;
+      height: 3px;
+      background: #cbd5e1;
+      transform-origin: left center;
+      border-radius: 999px;
+      opacity: .72;
+      cursor: pointer;
+      z-index: 1;
+      border: 0;
+      padding: 0;
+    }
+
+    .txn-edge.selected {
+      height: 4px;
+      background: linear-gradient(90deg, #2563eb, #f97316);
+      opacity: 1;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, .09);
+    }
+
+    .txn-edge.dim {
+      opacity: .28;
+      background: #cbd5e1;
+    }
+
+    .txn-edge.one { width: 240px; left: 19%; top: 51%; transform: rotate(-16deg); }
+    .txn-edge.two { width: 250px; left: 50%; top: 35%; transform: rotate(18deg); }
+    .txn-edge.main { width: 58%; left: 21%; top: 51%; transform: rotate(0deg); background: linear-gradient(90deg, #2563eb, #f97316); opacity: 1; }
+    .txn-edge.path-0 { width: 62%; left: 20%; top: 31%; transform: rotate(-13deg); }
+    .txn-edge.path-1 { width: 60%; left: 20%; top: 51%; transform: rotate(0deg); }
+    .txn-edge.path-2 { width: 63%; left: 20%; top: 70%; transform: rotate(11deg); }
+
+    .txn-edge-label {
+      position: absolute;
+      left: 50%;
+      top: -28px;
+      transform: translateX(-50%);
+      color: #475569;
+      font-size: 12px;
+      font-weight: 900;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+
+    .txn-edge-label small {
+      display: block;
+      margin-top: 4px;
+      color: #64748b;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .txn-graph-clickable:hover:after {
+      content: attr(data-tooltip);
+      position: absolute;
+      left: 50%;
+      bottom: calc(100% + 8px);
+      transform: translateX(-50%);
+      min-width: max-content;
+      max-width: 240px;
+      border: 1px solid #dbe5f2;
+      border-radius: 8px;
+      background: #0f172a;
+      color: #fff;
+      padding: 7px 9px;
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    .txn-edge.txn-graph-clickable:hover:after {
+      left: 50%;
+      bottom: 12px;
+    }
+
+    .txn-graph-caption {
+      position: absolute;
+      left: 22px;
+      bottom: 18px;
+      color: #64748b;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .txn-graph-hint {
+      position: absolute;
+      left: 22px;
+      top: 18px;
+      color: #8a97aa;
+      font-size: 11px;
+      font-weight: 800;
+      background: rgba(255, 255, 255, .78);
+      border: 1px solid #e2e8f0;
+      border-radius: 999px;
+      padding: 6px 9px;
+      pointer-events: none;
+    }
+
+    .txn-graph-detail-card {
+      margin-top: 12px;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      background: #fff;
+      padding: 14px 16px;
+    }
+
+    .txn-graph-detail-card h4 {
+      margin: 0 0 10px;
+      color: #172033;
+      font-size: 14px;
+    }
+
+    .txn-graph-detail-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px 18px;
+    }
+
+    .txn-graph-detail-grid span {
+      display: block;
+      color: #94a3b8;
+      font-size: 10px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin-bottom: 4px;
+    }
+
+    .txn-graph-detail-grid strong {
+      color: #334155;
+      font-size: 12px;
+      word-break: break-word;
+    }
+
+    .txn-exposure-section {
+      border: 1px solid var(--rl-line);
+      border-radius: 16px;
+      background: #fff;
+      padding: 18px 20px;
+    }
+
+    .overview-page {
+      display: grid;
+      gap: 22px;
+      padding: 0 0 24px;
+    }
+
+    .overview-title-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .overview-title-row h1 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: clamp(32px, 4vw, 54px);
+      line-height: .95;
+      letter-spacing: 0;
+    }
+
+    .overview-range {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #ffffffcc;
+      color: var(--muted);
+      padding: 0 14px;
+      font-weight: 800;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .overview-metric-strip {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 2px;
+      background: #fff;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .overview-metric {
+      min-height: 152px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 160px;
+      align-items: center;
+      gap: 20px;
+      padding: 32px 44px;
+    }
+
+    .overview-metric + .overview-metric {
+      border-left: 1px solid var(--line);
+    }
+
+    .overview-metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .overview-metric strong {
+      display: block;
+      font-family: var(--font-display);
+      font-size: 44px;
+      line-height: 1;
+      letter-spacing: .02em;
+    }
+
+    .overview-spark svg,
+    .overview-trend-svg {
+      width: 100%;
+      height: auto;
+      display: block;
+      overflow: visible;
+    }
+
+    .overview-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 22px;
+    }
+
+    .overview-card {
+      border: 1px solid var(--line);
+      border-radius: 2px;
+      background: #fff;
+      box-shadow: var(--shadow-soft);
+      padding: 34px 42px;
+    }
+
+    .overview-card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .overview-card h2 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: 24px;
+      line-height: 1.1;
+    }
+
+    .overview-toggle {
+      display: inline-flex;
+      padding: 3px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #f8fafc;
+    }
+
+    .overview-toggle button {
+      min-width: 72px;
+      min-height: 32px;
+      border: 0;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    .overview-toggle button.active {
+      background: #fff;
+      color: var(--fg);
+      box-shadow: 0 6px 18px #0f172a12;
+    }
+
+    .overview-donut-layout {
+      display: grid;
+      grid-template-columns: minmax(190px, 1fr) 220px;
+      align-items: center;
+      gap: 28px;
+      min-height: 220px;
+    }
+
+    .overview-donut {
+      width: min(310px, 100%);
+      aspect-ratio: 1.55;
+      position: relative;
+      margin: 0 auto;
+      border-radius: 50%;
+      background:
+        radial-gradient(ellipse at 50% 46%, #fff 0 30%, transparent 31%),
+        conic-gradient(from -90deg, #4f7cff 0 42%, #58c6df 42% 56%, #f7bf21 56% 76%, #ff642e 76% 100%);
+      transform: perspective(520px) rotateX(58deg);
+      box-shadow: inset 0 -20px 0 #00000012, 0 22px 34px #0f172a14;
+    }
+
+    .overview-donut::after {
+      content: "";
+      position: absolute;
+      inset: 24% 32%;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: inset 0 10px 24px #0f172a16;
+    }
+
+    .overview-legend {
+      display: grid;
+      gap: 10px;
+    }
+
+    .overview-legend-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-weight: 800;
+    }
+
+    .overview-legend-item b {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .risk-dot {
+      width: 12px;
+      height: 12px;
+      flex: 0 0 auto;
+      border-radius: 4px;
+      display: inline-block;
+      margin-right: 8px;
+    }
+
+    .overview-chart-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 22px;
+      align-items: center;
+      color: var(--muted);
+      font-weight: 800;
+      margin-bottom: 16px;
+    }
+
+    .overview-chart-legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .overview-chart-shell {
+      min-height: 236px;
+      display: grid;
+      align-items: end;
+    }
+
+    .overview-table-card {
+      padding: 34px 42px 24px;
+    }
+
+    .overview-risk-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 15px;
+    }
+
+    .overview-risk-table th {
+      color: #94a3b8;
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: .14em;
+      text-align: left;
+      text-transform: uppercase;
+      padding: 0 20px 18px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .overview-risk-table td {
+      padding: 20px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: middle;
+      font-weight: 700;
+    }
+
+    .overview-risk-table tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .overview-hash {
+      color: #2563eb;
+      font-weight: 900;
+    }
+
+    .overview-rule-chip,
+    .chain-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      border-radius: 8px;
+      background: #eef2f7;
+      padding: 6px 9px;
+      font-size: 13px;
+      font-weight: 900;
+      color: #334155;
+    }
+
+    .chain-pill .coin {
+      width: 22px;
+      height: 22px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 900;
+      background: #f59e0b;
+    }
+
+    .chain-pill.eth .coin { background: #627eea; }
+    .chain-pill.bnb .coin { background: #f3ba2f; color: #111827; }
+
+    @media (max-width: 1100px) {
+      .rl-three,
+      .rl-rules {
+        grid-template-columns: 1fr;
+      }
+
+      .rl-flow-grid,
+      .rl-flow-legend {
+        grid-template-columns: 1fr;
+      }
+
+      .txn-info-grid,
+      .txn-rule-grid,
+      .txn-rule-metrics,
+      .txn-rule-summary-grid,
+      .txn-flow-strip {
+        grid-template-columns: 1fr;
+      }
+
+      .txn-detail-head {
+        grid-template-columns: 1fr;
+        flex-direction: column;
+      }
+
+      .txn-screened-time {
+        padding-top: 0;
+      }
+
+      .txn-flow-edge {
+        justify-items: stretch;
+      }
+
+      .txn-entity-row {
+        grid-template-columns: 1fr;
+      }
+
+      .rl-hero-top,
+      .rl-donut-layout,
+      .overview-title-row {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .overview-metric-strip,
+      .overview-grid,
+      .overview-donut-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .overview-metric + .overview-metric {
+        border-left: 0;
+        border-top: 1px solid var(--line);
+      }
+    }
+
+    @media (max-width: 980px) {
+      .app-wrap {
+        padding-left: 84px;
+      }
+
+      .ct-filter-panel,
+      .detail-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .ct-page-header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .overview-card,
+      .overview-table-card,
+      .overview-metric {
+        padding: 24px;
+      }
+
+      .overview-metric {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="background-plane" aria-hidden="true">
+    <svg viewBox="0 0 1440 1024" preserveAspectRatio="none">
+      <path d="M-40 240C120 180 280 220 420 180C620 120 760 180 920 150C1090 118 1240 60 1480 130"></path>
+      <path d="M-60 360C110 320 260 370 430 332C610 292 770 352 940 314C1120 274 1280 236 1500 282"></path>
+      <path d="M-40 760C140 690 320 742 520 702C700 666 850 724 1030 690C1200 658 1320 606 1490 628"></path>
+    </svg>
+  </div>
+
+  <main id="authView" class="auth-wrap hide">
+    <section class="auth-card" aria-labelledby="authTitle">
+      <div class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 64 64">
+          <path d="M32 8 50 17.5v13.2C50 43.5 42.7 53 32 58 21.3 53 14 43.5 14 30.7V17.5L32 8Z" fill="none" stroke="currentColor" stroke-width="4"></path>
+          <path d="M24 32.5 30 38l12-14" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
+        </svg>
+      </div>
+      <h1 id="authTitle" class="auth-title">ChainTrust Console</h1>
+      <p class="auth-subtitle" id="authSubtitle">Sign in to continue</p>
+
+      <form id="loginForm">
+        <div id="loginError" class="alert hide">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M12 9v4"></path><path d="M12 17h.01"></path><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"></path></svg>
+          <span></span>
+        </div>
+
+        <div id="credentialsStep">
+          <div class="field">
+            <label for="emailInput">Email</label>
+            <div class="input-shell">
+              <svg class="icon" viewBox="0 0 24 24"><path d="m4 6 8 7 8-7"></path><rect x="3" y="5" width="18" height="14" rx="2"></rect></svg>
+              <input id="emailInput" type="email" placeholder="admin@example.com" autocomplete="email" required>
+            </div>
+          </div>
+          <div class="field">
+            <label for="passwordInput">Password</label>
+            <div class="input-shell">
+              <svg class="icon" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="9" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg>
+              <input id="passwordInput" type="password" placeholder="Password" autocomplete="current-password" required>
+            </div>
+          </div>
+        </div>
+
+        <div id="mfaStep" class="hide">
+          <div class="field">
+            <label for="mfaInput">Two-factor code</label>
+            <div class="input-shell">
+              <svg class="icon" viewBox="0 0 24 24"><path d="M7 10v4"></path><path d="M12 8v8"></path><path d="M17 11v2"></path><rect x="3" y="4" width="18" height="16" rx="3"></rect></svg>
+              <input id="mfaInput" inputmode="numeric" maxlength="6" placeholder="123456">
+            </div>
+          </div>
+        </div>
+
+        <button class="primary-btn" id="loginButton" type="submit">Sign in</button>
+      </form>
+
+      <div class="auth-foot">
+        <span>Mock frontend only</span>
+        <button class="link" id="forgotBtn" type="button">Forgot password</button>
+      </div>
+    </section>
+  </main>
+
+  <main id="appView" class="app-wrap">
+    <section class="console-shell">
+      <aside class="sidebar">
+        <div class="sidebar-head">
+          <div class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 64 64">
+              <path d="M32 8 50 17.5v13.2C50 43.5 42.7 53 32 58 21.3 53 14 43.5 14 30.7V17.5L32 8Z" fill="none" stroke="currentColor" stroke-width="4"></path>
+              <path d="M24 32.5 30 38l12-14" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+          </div>
+          <div>
+            <div class="brand-name">ChainTrust</div>
+            <div class="brand-caption">Console</div>
+          </div>
+        </div>
+
+        <nav>
+          <div class="nav-group-label">Overview</div>
+          <div class="nav-list">
+            <button class="nav-btn active" data-page="overview"><svg class="icon" viewBox="0 0 24 24"><path d="M3 13h8V3H3v10Z"></path><path d="M13 21h8V3h-8v18Z"></path><path d="M3 21h8v-6H3v6Z"></path></svg>Overview</button>
+          </div>
+          <div class="nav-group-label">Screening</div>
+          <div class="nav-list">
+            <button class="nav-btn" data-page="ctcheck"><svg class="icon" viewBox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-8 9-4.5-1.5-8-4-8-9V5l8-3 8 3v8Z"></path><path d="m9 12 2 2 4-5"></path></svg>CT Check</button>
+            <button class="nav-btn" data-page="ctmonitor"><svg class="icon" viewBox="0 0 24 24"><path d="M3 3v18h18"></path><path d="m7 15 4-4 3 3 5-7"></path></svg>CT Monitor</button>
+          </div>
+          <div class="nav-group-label">Admin</div>
+          <div class="nav-list">
+            <button class="nav-btn" data-page="admin"><svg class="icon" viewBox="0 0 24 24"><path d="M12 15.5A3.5 3.5 0 1 0 12 8a3.5 3.5 0 0 0 0 7.5Z"></path><path d="M19.4 15a1.8 1.8 0 0 0 .4 2l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.8 1.8 0 0 0-2-.4 1.8 1.8 0 0 0-1 1.6V21a2 2 0 1 1-4 0v-.1a1.8 1.8 0 0 0-1-1.6 1.8 1.8 0 0 0-2 .4l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.8 1.8 0 0 0 .4-2 1.8 1.8 0 0 0-1.6-1H3a2 2 0 1 1 0-4h.1a1.8 1.8 0 0 0 1.6-1 1.8 1.8 0 0 0-.4-2l-.1-.1A2 2 0 1 1 7 4l.1.1a1.8 1.8 0 0 0 2 .4 1.8 1.8 0 0 0 1-1.6V3a2 2 0 1 1 4 0v.1a1.8 1.8 0 0 0 1 1.6 1.8 1.8 0 0 0 2-.4l.1-.1A2 2 0 1 1 20 7l-.1.1a1.8 1.8 0 0 0-.4 2 1.8 1.8 0 0 0 1.6 1h.1a2 2 0 1 1 0 4h-.1a1.8 1.8 0 0 0-1.7 1Z"></path></svg>Admin Portal</button>
+          </div>
+        </nav>
+
+        <div class="sidebar-footer">
+          <div class="user-pill">
+            <div class="avatar">A</div>
+            <div>
+              <div style="font-weight:800">Admin User</div>
+              <div class="brand-caption">admin@example.com</div>
+            </div>
+          </div>
+          <button class="ghost-btn" id="logoutBtn" type="button">Sign out</button>
+        </div>
+      </aside>
+
+      <section class="main">
+        <div class="topbar">
+          <div class="topbar-title">
+            <p class="kicker">Risk Operations Console</p>
+            <h1 id="topbarTitle">CT Check</h1>
+          </div>
+          <div class="topbar-actions">
+            <button class="icon-btn ghost-icon" id="docsBtn" title="Docs" type="button"><svg class="icon" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5Z"></path></svg></button>
+            <button class="icon-btn ghost-icon" id="exportBtn" title="Language" type="button"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M2 12h20"></path><path d="M12 2a15.3 15.3 0 0 1 0 20"></path><path d="M12 2a15.3 15.3 0 0 0 0 20"></path></svg></button>
+            <button class="icon-btn ghost-icon" id="themeBtn" title="Toggle theme" type="button"><svg class="icon" viewBox="0 0 24 24"><path d="M12 3v2"></path><path d="M12 19v2"></path><path d="m4.22 4.22 1.42 1.42"></path><path d="m18.36 18.36 1.42 1.42"></path><path d="M3 12h2"></path><path d="M19 12h2"></path><path d="m4.22 19.78 1.42-1.42"></path><path d="m18.36 5.64 1.42-1.42"></path><circle cx="12" cy="12" r="4"></circle></svg></button>
+            <span class="topbar-user"><span class="avatar">K</span>kellen.guo</span>
+          </div>
+        </div>
+
+        <div id="content" class="content"></div>
+      </section>
+    </section>
+  </main>
+
+  <div id="modalBackdrop" class="modal-backdrop hide">
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-head">
+        <div>
+          <h2 id="modalTitle">New Screening</h2>
+          <p id="modalDescription">Create an async screening task with mock data.</p>
+        </div>
+        <button class="icon-btn" id="modalClose" type="button" title="Close"><svg class="icon" viewBox="0 0 24 24"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></button>
+      </div>
+      <form id="screeningForm">
+        <div class="modal-body" id="modalFields"></div>
+        <div class="modal-actions">
+          <button class="ghost-btn" type="button" id="cancelModal">Cancel</button>
+          <button class="ghost-btn" type="submit"><svg class="icon" viewBox="0 0 24 24"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>Create task</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <div id="toast" class="toast">
+    <svg class="icon" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"></path></svg>
+    <span>Saved</span>
+  </div>
+
+  <script>
+    const icons = {
+      plus: '<svg class="icon" viewBox="0 0 24 24"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>',
+      refresh: '<svg class="icon" viewBox="0 0 24 24"><path d="M21 12a9 9 0 0 1-15.5 6.3"></path><path d="M3 12A9 9 0 0 1 18.5 5.7"></path><path d="M18 2v4h4"></path><path d="M6 22v-4H2"></path></svg>',
+      eye: '<svg class="icon" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>'
+    };
+
+    const tasks = [
+      { id: 'async_check_139997621618387780_517', kind: 'address', chain: 'TRX', subject: 'TYyQ2HCgXFABCufx5PX5JkXQbfAPnMphxx', displaySubject: 'TYyQ2HCgXF...APnMphxx', entity: 'banned_unknownentity_TYyQ2H_nMphxx', category: 'Blacklisted Address', risk: 'high', status: 'completed', progress: 100, rules: ['发行商冻结(强)-出金Blocked Entities - Major (W)', '发行商冻结(强)-入金Blocked Entities - Major (D)', '平台冻结-出金Blocked Entities'], moreRules: 3, inflow: '$684,813.11', outflow: '$1,638,183.39', balance: '$0', txCount: '60', screenedAt: 'Jun 3, 2026 14:50', lastScreened: 'about 10 hours ago', updated: '10 hr ago' },
+      { id: 'async_check_139997621618387780_411', kind: 'address', chain: 'TRX', subject: 'TJyf3bMf5C86Dc2jJV7qD6q7vN8edMnzsn', displaySubject: 'TJyf3bMf5C...8edMnzsn', entity: '-', category: '-', risk: 'severe', status: 'completed', progress: 100, rules: ['发行商冻结(强)-出金Blocked Entities - Minor (W)', '非法活动(弱)-出金Illicit Exposure - Minor (W)'], moreRules: 2, inflow: '$10,887,254,269.66', outflow: '$11,671,718,693.26', balance: '$0', txCount: '1,284', screenedAt: 'Jun 3, 2026 15:20', lastScreened: 'about 9 hours ago', updated: '9 hr ago' },
+      { id: 'async_check_139997621618387780_412', kind: 'address', chain: 'TRX', subject: 'TJrEpKjAFB7kfqQeZVxzgsWcV7Gst6dN3', displaySubject: 'TJrEpKjAFB...7Gst6dN3', entity: 'Fintoch', category: 'Scam', risk: 'high', status: 'completed', progress: 100, rules: ['非法活动(强)-出金Illicit Exposure - Major (W)', '非法活动(强)-入金Illicit Exposure - Major (D)'], moreRules: 3, inflow: '$288,836.02', outflow: '$288,910.42', balance: '$0', txCount: '142', screenedAt: 'Jun 3, 2026 15:20', lastScreened: 'about 9 hours ago', updated: '9 hr ago' },
+      { id: 'async_check_139997621618387780_413', kind: 'address', chain: 'TRX', subject: 'TVp4VW5DdC6KHfXWkG2icrnpWAj3dpNH', displaySubject: 'TVp4VW5DdC...8Aj3dpNH', entity: '-', category: '-', risk: 'low', status: 'completed', progress: 100, rules: [], moreRules: 0, inflow: '$0', outflow: '$0', balance: '$0', txCount: '0', screenedAt: 'Jun 3, 2026 15:20', lastScreened: 'about 9 hours ago', updated: '9 hr ago' },
+      { id: 'async_check_139997621618387780_414', kind: 'address', chain: 'TRX', subject: 'TYK29mbyvVTo9UrXTnqoqJmRxaVbVZQg', displaySubject: 'TYK29mbyvV...xaVbVZQg', entity: 'CHEIL CREDIT BANK', category: 'Sanctioned Entity', risk: 'severe', status: 'completed', progress: 100, rules: ['制裁红线-出金Sanctions - Withdrawal', '制裁红线-入金Sanctions - Deposit'], moreRules: 1, inflow: '$129,973.32', outflow: '$285,019.83', balance: '$0', txCount: '26', screenedAt: 'Jun 3, 2026 15:20', lastScreened: 'about 9 hours ago', updated: '9 hr ago' },
+      { id: 'async_check_139997621618387780_415', kind: 'address', chain: 'TRX', subject: 'TXhf9nU9bjASm6HnJfuoU72DqdhdfnA4T', displaySubject: 'TXhf9nU9bj...dndfnA4T', entity: 'SIM', category: 'Sanctioned Entity', risk: 'severe', status: 'completed', progress: 100, rules: ['制裁红线-入金Sanctions - Deposit', '法律红线与制裁Sanctions & CTF'], moreRules: 0, inflow: '$220,758.63', outflow: '$210,098.12', balance: '$0', txCount: '19', screenedAt: 'Jun 3, 2026 15:19', lastScreened: 'about 9 hours ago', updated: '9 hr ago' },
+      { id: 'async_check_139997621618387780_416', kind: 'address', chain: 'TRX', subject: 'TNJwqxH6sV4PNthcWXq2NQ1pbbtn1mxd', displaySubject: 'TNJwqxH6sV...btnt1mxd', entity: 'NoOnescom', category: 'No-KYC Exchange', risk: 'severe', status: 'completed', progress: 100, rules: ['制裁红线-入金Sanctions - Deposit', '高风险服务-可疑实体High-Risk Service'], moreRules: 0, inflow: '$215,687,301.56', outflow: '$0', balance: '$0', txCount: '772', screenedAt: 'Jun 3, 2026 15:16', lastScreened: 'about 9 hours ago', updated: '9 hr ago' },
+      { id: 'async_check_139997621618387780_417', kind: 'address', chain: 'TRX', subject: 'TEWH15NbWwBPrBqF2mHWqBU7b2UhjqpC', displaySubject: 'TEWH15NbWw...b2UhjqpC', entity: '-', category: '-', risk: 'low', status: 'completed', progress: 100, rules: [], moreRules: 0, inflow: '$0', outflow: '$0', balance: '$0', txCount: '0', screenedAt: 'Jun 3, 2026 14:50', lastScreened: 'about 10 hours ago', updated: '10 hr ago' },
+      { id: 'async_check_139997621618387780_418', kind: 'address', chain: 'TRX', subject: 'TSFvf8LZuw1mqck7XR4Sk4kdMrkiGRme', displaySubject: 'TSFvf8LZuw...MrkiGRme', entity: '-', category: '-', risk: 'low', status: 'completed', progress: 100, rules: [], moreRules: 0, inflow: '$0', outflow: '$0', balance: '$0', txCount: '0', screenedAt: 'Jun 3, 2026 14:50', lastScreened: 'about 10 hours ago', updated: '10 hr ago' },
+      { id: 'TX-9004', kind: 'transaction', chain: 'BSC', subject: '900477a2fc6fd73bd9bb0ff12d85c7421d45837b2bb257936af67feda0', displaySubject: '900477a2fc...f67feda0', entity: 'HUIONE Pay - FinCEN', category: 'Sanctioned Entity', risk: 'severe', status: 'completed', progress: 100, rules: ['制裁红线-入金Sanctions - Deposit', '法律红线与制裁Sanctions & CTF'], moreRules: 0, amount: '100000000 USDT', direction: 'Deposit', outputAddress: 'TPxAJYBT...2q276v', txTime: '-', screenedAt: 'Jun 3, 2026 18:32', lastScreened: '1 day ago', updated: '18:32', balance: '$7.32' },
+      { id: 'TX-9005', kind: 'transaction', chain: 'BSC', subject: '59c6a84de53b27ca7c927a718c7874444bfc71b6', displaySubject: '59c6a84de5...4fbc71b6', entity: 'HUIONE Pay - FinCEN', category: 'Sanctioned Entity', risk: 'severe', status: 'completed', progress: 100, rules: ['制裁红线-入金Sanctions - Deposit', '法律红线与制裁Sanctions & CTF'], moreRules: 0, amount: '50070000 USDT', direction: 'Deposit', outputAddress: 'TJy f3bMf...dMnzsn'.replace(' ', ''), txTime: '-', screenedAt: 'Jun 3, 2026 18:31', lastScreened: '1 day ago', updated: '18:31', balance: '$7.32' },
+      { id: 'TX-9006', kind: 'transaction', chain: 'BSC', subject: '59c6a84de53b27ca7c927a718c7874444bfc71b6', displaySubject: '59c6a84de5...4fbc71b6', entity: 'HUIONE Pay - FinCEN', category: 'Sanctioned Entity', risk: 'severe', status: 'completed', progress: 100, rules: ['制裁红线-入金Sanctions - Deposit', '法律红线与制裁Sanctions & CTF'], moreRules: 0, amount: '50070000 USDT', direction: 'Deposit', outputAddress: 'TJy f3bMf...dMnzsn'.replace(' ', ''), txTime: '-', screenedAt: 'Jun 3, 2026 18:31', lastScreened: '1 day ago', updated: '18:31', balance: '$7.32' },
+      { id: 'TX-9007', kind: 'transaction', chain: 'BSC', subject: '59c6a84de53b27ca7c927a718c7874444bfc71b6', displaySubject: '59c6a84de5...4fbc71b6', entity: '-', category: '-', risk: 'low', status: 'failed', progress: 0, rules: [], moreRules: 0, amount: '-', direction: 'Deposit', outputAddress: 'TJy f3bMf...dMnzsn'.replace(' ', ''), txTime: '-', screenedAt: 'Jun 3, 2026 17:25', lastScreened: '1 day ago', updated: '17:25', balance: '$7.32' },
+      { id: 'TX-9008', kind: 'transaction', chain: 'BSC', subject: '900477a2fc6fd73bd9bb0ff12d85c7421d45837b2bb257936af67feda0', displaySubject: '900477a2fc...f67feda0', entity: '-', category: '-', risk: 'low', status: 'failed', progress: 0, rules: [], moreRules: 0, amount: '-', direction: 'Deposit', outputAddress: 'TPxAJYBT...2q276v', txTime: '-', screenedAt: 'Jun 3, 2026 17:25', lastScreened: '1 day ago', updated: '17:25', balance: '$7.32' },
+      { id: 'TX-9009', kind: 'transaction', chain: 'BSC', subject: '900477a2fc6fd73bd9bb0ff12d85c7421d45837b2bb257936af67feda0', displaySubject: '900477a2fc...f67feda0', entity: '-', category: '-', risk: 'low', status: 'failed', progress: 0, rules: [], moreRules: 0, amount: '-', direction: 'Deposit', outputAddress: 'TPxAJYBT...2q276v', txTime: '-', screenedAt: 'Jun 3, 2026 17:25', lastScreened: '1 day ago', updated: '17:25', balance: '$7.32' },
+      { id: 'TX-9010', kind: 'transaction', chain: 'BSC', subject: '59c6a84de53b27ca7c927a718c7874444bfc71b6', displaySubject: '59c6a84de5...4fbc71b6', entity: '-', category: '-', risk: 'low', status: 'failed', progress: 0, rules: [], moreRules: 0, amount: '-', direction: 'Deposit', outputAddress: 'TJy f3bMf...dMnzsn'.replace(' ', ''), txTime: '-', screenedAt: 'Jun 3, 2026 17:23', lastScreened: '1 day ago', updated: '17:23', balance: '$7.32' },
+      { id: 'TX-9011', kind: 'transaction', chain: 'BSC', subject: '0xf9b4acf5d53b37886bc8d76296db98f0fbd165bf48d28af3a2159e9c7d036295', displaySubject: '0xf9b4acf5...7d036295', entity: '0xe908457ba7ea40e9b534e4993aa43e674300e4b4', category: 'Gambling Platform', risk: 'moderate', status: 'completed', progress: 100, rules: ['资金拆分（规避阈值）', '博彩资金暴露-入金Gambling Exposure - Deposit'], moreRules: 1, amount: '2000 USDT', direction: 'Deposit', outputAddress: '0x5c02a4...44bff0', txTime: 'Oct 13, 2025 15:49', screenedAt: 'Jun 3, 2026 15:36', lastScreened: '1 day ago', updated: '15:36', balance: '$7.32' },
+      { id: 'TX-9012', kind: 'transaction', chain: 'BSC', subject: '59c6a84de53b27ca7c927a718c7874444bfc71b6', displaySubject: '59c6a84de5...4fbc71b6', entity: '-', category: '-', risk: 'low', status: 'failed', progress: 0, rules: [], moreRules: 0, amount: '-', direction: 'Deposit', outputAddress: 'TJy f3bMf...dMnzsn'.replace(' ', ''), txTime: '-', screenedAt: 'Jun 3, 2026 15:35', lastScreened: '1 day ago', updated: '15:35', balance: '$7.32' },
+      { id: 'TX-9013', kind: 'transaction', chain: 'BSC', subject: '900477a2fc6fd73bd9bb0ff12d85c7421d45837b2bb257936af67feda0', displaySubject: '900477a2fc...f67feda0', entity: '-', category: '-', risk: 'low', status: 'failed', progress: 0, rules: [], moreRules: 0, amount: '-', direction: 'Deposit', outputAddress: 'TPxAJYBT...2q276v', txTime: '-', screenedAt: 'Jun 3, 2026 15:34', lastScreened: '1 day ago', updated: '15:34', balance: '$7.32' }
+    ];
+
+    let activePage = 'overview';
+    let search = '';
+    let filters = { risk: 'all', status: 'all', category: 'all' };
+    let modalMode = 'address';
+    let selectedDetailId = null;
+    let detailTab = 'rules';
+    let selectedHistorySnapshot = null;
+    let selectedGraphEntity = null;
+    let selectedTxnRuleIndex = null;
+    let selectedGraphMode = 'default';
+    let selectedHopDepth = '5';
+    let selectedTopPaths = '5';
+    let selectedGraphDetail = null;
+    let graphZoom = 1;
+    let graphPanX = 0;
+    let graphPanY = 0;
+    let graphFullscreen = false;
+    let graphDragging = false;
+    let graphDragStart = null;
+
+    const qs = (sel) => document.querySelector(sel);
+    const qsa = (sel) => [...document.querySelectorAll(sel)];
+
+    function shortHash(value) {
+      return value.length > 22 ? value.slice(0, 10) + '...' + value.slice(-6) : value;
+    }
+
+    function showToast(message) {
+      const toast = qs('#toast');
+      toast.querySelector('span').textContent = message;
+      toast.classList.add('show');
+      clearTimeout(showToast.timer);
+      showToast.timer = setTimeout(() => toast.classList.remove('show'), 2200);
+    }
+
+    function badge(value, label) {
+      return '<span class="badge ' + String(value).replace(/\s+/g, '-') + '">' + (label || value) + '</span>';
+    }
+
+    function getPageMeta() {
+      const map = {
+        ctcheck: {
+          kicker: 'Screening Workspace',
+          title: 'Address Screening',
+          desc: 'View risk levels, entity attribution, fund exposure, and hit rules centered on addresses',
+          action: 'New Screening',
+          kind: 'address'
+        },
+        ctmonitor: {
+          kicker: 'Screening Workspace',
+          title: 'Transactions Screening',
+          desc: 'Monitor deposits and withdrawals, inspect triggered transaction rules, and follow async screening progress in one operational table.',
+          action: 'New Screening',
+          kind: 'transaction'
+        },
+        admin: {
+          kicker: 'Admin Portal',
+          title: 'Administration',
+          desc: 'Manage API keys, plan usage, roles, organization members, and risk settings from a compact portal.',
+          action: 'Invite Member',
+          kind: 'admin'
+        }
+      };
+      return map[activePage];
+    }
+
+    function header(stats) {
+      const meta = getPageMeta();
+      return `
+        <section class="panel page-header ${activePage === 'ctcheck' || activePage === 'ctmonitor' ? 'ct-page-header' : ''}">
+          <div class="${activePage === 'ctcheck' || activePage === 'ctmonitor' ? '' : 'header-flex'}">
+            <div>
+              <p class="kicker">${meta.kicker}</p>
+              <h1>${meta.title}</h1>
+              <p class="desc">${meta.desc}</p>
+              ${activePage === 'ctcheck' || activePage === 'ctmonitor' ? '' : `<div class="stats">${stats.map(s => `<div class="stat" style="border-left-color:${s.color}"><span>${s.label}</span><strong>${s.value}</strong></div>`).join('')}</div>`}
+            </div>
+            <button class="${activePage === 'ctcheck' || activePage === 'ctmonitor' ? 'primary-btn ct-primary-action' : 'ghost-btn'}" id="newTaskBtn" type="button">${icons.plus}${meta.action}</button>
+          </div>
+        </section>
+      `;
+    }
+
+    function filterPanel() {
+      return `
+        <section class="panel filters ct-filter-panel">
+          <div class="field">
+            <label for="pageSearch">Search</label>
+            <div class="input-shell">
+              <svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+              <input id="pageSearch" placeholder="${activePage === 'ctmonitor' ? 'Search transaction hash...' : 'Search address...'}" value="${search}">
+            </div>
+          </div>
+          <div class="field">
+            <label for="riskFilter">Risk Level</label>
+            <div class="input-shell">
+              <select id="riskFilter">
+                <option value="all">All Levels</option>
+                <option value="low">LOW</option>
+                <option value="moderate">MODERATE</option>
+                <option value="high">HIGH</option>
+                <option value="severe">SEVERE</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <label for="categoryFilter">Entity Category</label>
+            <div class="input-shell">
+              <select id="categoryFilter">
+                <option value="all">All Categories</option>
+                <option value="Blacklisted Address">Blacklisted Address</option>
+                <option value="Sanctioned Entity">Sanctioned Entity</option>
+                <option value="No-KYC Exchange">No-KYC Exchange</option>
+                <option value="Scam">Scam</option>
+              </select>
+            </div>
+          </div>
+        </section>
+      `;
+    }
+
+    function bindFilters() {
+      const pageSearch = qs('#pageSearch');
+      if (!pageSearch) return;
+      pageSearch.addEventListener('input', (e) => { search = e.target.value; render(); });
+      qs('#riskFilter').value = filters.risk;
+      qs('#categoryFilter').value = filters.category;
+      qs('#riskFilter').addEventListener('change', (e) => { filters.risk = e.target.value; render(); });
+      qs('#categoryFilter').addEventListener('change', (e) => { filters.category = e.target.value; render(); });
+    }
+
+    function filteredTasks(kind) {
+      const needle = search.toLowerCase();
+      return tasks.filter(item => {
+        if (kind && item.kind !== kind) return false;
+        if (filters.risk !== 'all' && item.risk !== filters.risk) return false;
+        if (filters.status !== 'all' && item.status !== filters.status) return false;
+        if (filters.category !== 'all' && item.category !== filters.category) return false;
+        if (!needle) return true;
+        return [item.id, item.chain, item.subject, item.entity, item.risk, item.status, item.rules].join(' ').toLowerCase().includes(needle);
+      });
+    }
+
+    function rulePills(item) {
+      if (!item.rules || item.rules.length === 0) return '-';
+      return `<div class="rule-pills">${item.rules.slice(0, 2).map((rule, index) => `<span class="rule-pill ${index === 0 && item.risk !== 'severe' ? 'warn' : ''}">${rule}</span>`).join('')}${item.moreRules ? `<span class="rule-more">+${item.moreRules} more</span>` : ''}</div>`;
+    }
+
+    function taskTable(kind) {
+      const rows = filteredTasks(kind);
+      if (kind === 'address') {
+        return `
+          <section class="panel table-wrap ct-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Address</th>
+                  <th>Risk Level</th>
+                  <th>Entity</th>
+                  <th>Category</th>
+                  <th>Triggered Rules</th>
+                  <th>Inflow</th>
+                  <th>Outflow</th>
+                  <th>Status</th>
+                  <th>Screened At</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rows.map(item => `
+                  <tr class="detail-row" data-id="${item.id}">
+                    <td class="address-cell"><strong>${item.displaySubject || shortHash(item.subject)}</strong><span class="tiny-pill">Async</span></td>
+                    <td>${badge(item.risk)}</td>
+                    <td>${item.entity}</td>
+                    <td>${item.category}</td>
+                    <td>${rulePills(item)}</td>
+                    <td class="amount">${item.inflow}</td>
+                    <td class="amount">${item.outflow}</td>
+                    <td>${badge(item.status, 'Completed')}</td>
+                    <td>${item.screenedAt.split(' ').slice(0, 3).join(' ')}<div class="brand-caption">${item.screenedAt.split(' ').slice(3).join(' ')}</div></td>
+                    <td><button class="icon-btn action-refresh view-detail" data-id="${item.id}" title="Open detail">${icons.refresh}</button></td>
+                  </tr>
+                `).join('') || `<tr><td colspan="10">No matching records.</td></tr>`}
+              </tbody>
+            </table>
+          </section>
+        `;
+      }
+      return `
+        <section class="panel table-wrap ct-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Tx Hash</th>
+                <th>Risk Level</th>
+                <th>Triggered Rules</th>
+                <th>Amount</th>
+                <th>Direction</th>
+                <th>Output Address</th>
+                <th>Status</th>
+                <th>Txn Time</th>
+                <th>Screened At</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows.map(item => `
+                <tr class="detail-row" data-id="${item.id}">
+                  <td class="address-cell"><strong>${item.displaySubject || shortHash(item.subject)}</strong><span class="tiny-pill">Async</span></td>
+                  <td>${item.rules && item.rules.length ? badge(item.risk) : '-'}</td>
+                  <td>${rulePills(item)}</td>
+                  <td>${item.amount || '-'}</td>
+                  <td>${item.direction || 'Deposit'}</td>
+                  <td class="mono">${item.outputAddress || '-'}</td>
+                  <td>${badge(item.status, item.status === 'failed' ? 'Failed' : 'Completed')}</td>
+                  <td>${item.txTime || '-'}</td>
+                  <td>${item.screenedAt.split(' ').slice(0, 3).join(' ')}<div class="brand-caption">${item.screenedAt.split(' ').slice(3).join(' ')}</div></td>
+                  <td><button class="icon-btn action-refresh view-detail" data-id="${item.id}" title="Open detail">${icons.refresh}</button></td>
+                </tr>
+              `).join('') || `<tr><td colspan="10">No matching records.</td></tr>`}
+            </tbody>
+          </table>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:18px 20px;color:#64748b">
+            <span>Showing 1 to ${Math.min(rows.length, 10)} of 27 tasks</span>
+            <span style="display:flex;gap:10px;align-items:center"><button class="chip-btn" type="button">Previous</button><span>1 / 3</span><button class="chip-btn" type="button">Next</button></span>
+          </div>
+        </section>
+      `;
+    }
+
+    function insightsPanel() {
+      return `
+        <div class="split">
+          <section class="panel">
+            <div class="panel-head">
+              <h2>Risk Summary</h2>
+              ${badge('screening', 'Live')}
+            </div>
+            <div class="panel-body metric-grid">
+              <div class="metric"><span>High exposure</span><strong>$151.6K</strong></div>
+              <div class="metric"><span>Rule hits</span><strong>18</strong></div>
+              <div class="metric"><span>Screening SLA</span><strong>97.4%</strong></div>
+              <div class="metric"><span>Open alerts</span><strong>3</strong></div>
+            </div>
+          </section>
+          <section class="panel">
+            <div class="panel-head">
+              <h2>Activity</h2>
+              <button class="chip-btn" id="markAllBtn" type="button">Mark read</button>
+            </div>
+            <div class="panel-body timeline">
+              <div class="event"><i></i><div><strong>Manual CT rescreen triggered</strong><span>Admin User, 36 minutes ago</span></div></div>
+              <div class="event"><i></i><div><strong>Status changed to confirmed risk</strong><span>Alert review, 2 days ago</span></div></div>
+              <div class="event"><i></i><div><strong>New CEX Interaction alert</strong><span>ETH address screening, 5 days ago</span></div></div>
+            </div>
+          </section>
+        </div>
+      `;
+    }
+
+    function exposureRows() {
+      return [
+        ['Hot_Address_Initial_Exposure', 'Counterparty', '0.2%', '$1,376.3154', 'counterparty - 0.2%', 'indirect - 0%'],
+        ['banned_unknownentity_TAqTwp_wsgzfp', 'Counterparty', '30.51%', '$208,909.98', 'counterparty - 30.51%', 'indirect - 0%'],
+        ['banned_unknownentity_TH6wGj_DjPVQ8', 'Counterparty', '4.39%', '$30,030', 'counterparty - 4.39%', 'indirect - 0%'],
+        ['banned_unknownentity_TRTXHP_FRoH1h', 'Counterparty', '5.22%', '$35,750.63', 'counterparty - 5.22%', 'indirect - 0%']
+      ];
+    }
+
+    function screeningHistoryRows(kind) {
+      if (kind === 'transaction') {
+        return [
+          { risk: 'high', screenTime: '2023-10-27 14:30:05', screenedBy: 'Admin_01', rules: ['Funds Splitting', 'Funds Consolidation'] },
+          { risk: 'moderate', screenTime: '2023-10-26 09:15:22', screenedBy: 'System_Auto', rules: ['Fast Turnover'] },
+          { risk: 'low', screenTime: '2023-10-25 18:45:10', screenedBy: 'Analyst_04', rules: [] },
+          { risk: 'moderate', screenTime: '2023-10-24 11:20:00', screenedBy: 'Admin_01', rules: ['Velocity Spike'] }
+        ];
+      }
+      return [
+        { risk: 'moderate', screenTime: '2023-10-27 14:30:05', screenedBy: 'Admin_01', rules: ['发行商冻结(强)-出金Blocked Entities - Major (W)', '发行商冻结(强)-入金Blocked Entities - Major (D)'] },
+        { risk: 'moderate', screenTime: '2023-10-26 09:15:22', screenedBy: 'System_Auto', rules: ['非法活动(弱)-出金Illicit Exposure - Minor (W)'] },
+        { risk: 'low', screenTime: '2023-10-25 18:45:10', screenedBy: 'Analyst_04', rules: [] },
+        { risk: 'moderate', screenTime: '2023-10-24 11:20:00', screenedBy: 'Admin_01', rules: ['Blocked Entities - Watchlist Review'] }
+      ];
+    }
+
+    function historyRulePills(rules) {
+      if (!rules || !rules.length) return '<span class="muted">No triggered rules</span>';
+      return `<div class="rule-pills">${rules.slice(0, 2).map(rule => `<span class="rule-pill warn">${rule}</span>`).join('')}${rules.length > 2 ? `<span class="rule-more">+${rules.length - 2} more</span>` : ''}</div>`;
+    }
+
+    function screeningHistoryPanel(kind, currentId) {
+      const history = screeningHistoryRows(kind);
+      const first = currentId ? { id: currentId } : tasks.find(item => item.kind === kind);
+      return `
+        <section class="history-card">
+          <div class="history-caption">Showing last 4 screenings</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Risk Level</th>
+                <th>Screen Time</th>
+                <th>Screened By</th>
+                <th>Triggered Rules</th>
+                <th style="text-align:right">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${history.map((row, index) => `
+                <tr>
+                  <td>${badge(row.risk)}</td>
+                  <td>${row.screenTime}</td>
+                  <td>${row.screenedBy}</td>
+                  <td>${historyRulePills(row.rules)}</td>
+                  <td style="text-align:right"><button class="history-link" data-id="${first ? first.id : ''}" data-history-index="${index}" type="button">View Result</button></td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </section>
+      `;
+    }
+
+    function fundFlowPanel() {
+      const source = [
+        ['Centralized Exchange (CEX)', '63.72%', '$82,816.1662', '#6b83f6', '63.72%'],
+        ['Unknown', '33.70%', '$43,797.2928', '#8aa3ff', '33.70%'],
+        ['Special Measures', '2.17%', '$2,823.8729', '#a9bfff', '2.17%'],
+        ['No-KYC Exchange', '0.41%', '$535.9881', '#d1dcfb', '0.41%']
+      ];
+      const destination = [
+        ['Sanctioned Entity', '94.34%', '$268,893.14', '#6b83f6', '94.34%'],
+        ['Unknown', '5.66%', '$16,126.69', '#8aa3ff', '5.66%']
+      ];
+      const collapsed = [
+        ['Unknown', '(1) $43,797.2928 / 33.70%'],
+        ['Special Measures', '(1) $2,823.8729 / 2.17%'],
+        ['No-KYC Exchange', '(1) $535.9881 / 0.41%']
+      ];
+      const legend = (items) => items.map(item => `
+        <div class="rl-flow-legend-item">
+          <i class="rl-flow-legend-dot" style="--c:${item[3]}"></i>
+          <div>${item[0]}&nbsp; ${item[1]}<span class="rl-flow-legend-value">${item[2]}</span></div>
+        </div>
+      `).join('');
+      const bar = (items) => `<div class="rl-stacked-bar">${items.map(item => `<span style="--w:${item[4]};--c:${item[3]}"></span>`).join('')}</div>`;
+      return `
+        <div class="rl-flow-grid">
+          <article class="rl-flow-card source">
+            <h2 class="rl-flow-title">Source of Funds</h2>
+            ${bar(source)}
+            <div class="rl-flow-legend">${legend(source)}</div>
+          </article>
+          <article class="rl-flow-card">
+            <h2 class="rl-flow-title">Destination of Funds</h2>
+            ${bar(destination)}
+            <div class="rl-flow-legend">${legend(destination)}</div>
+          </article>
+        </div>
+        <section class="rl-flow-table-section">
+          <div class="rl-flow-group">
+            <div class="rl-flow-group-head">
+              <div><span class="rl-category-pill">Centralized Exchange (CEX)</span> <span>(1) $82,816.1662 / 63.72%</span></div>
+              <svg class="icon" viewBox="0 0 24 24"><path d="m18 15-6-6-6 6"></path></svg>
+            </div>
+            <div class="rl-table-wrap">
+              <table class="rl-table">
+                <thead><tr><th>Entity</th><th>Closest Proximity</th><th>Contribution</th><th class="rl-right">Value (USD)</th></tr></thead>
+                <tbody>
+                  <tr>
+                    <td>Hot_Address_Initial_Exposure</td>
+                    <td>Counterparty</td>
+                    <td>
+                      <div class="rl-contribution">
+                        <strong>63.72%</strong>
+                        <span class="rl-small">counterparty - 63.72%<br>indirect - 0%</span>
+                      </div>
+                    </td>
+                    <td class="rl-right"><strong>$82,816.1662</strong><br><span class="rl-small">counterparty - $82,816.1662<br>indirect - $0</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          ${collapsed.map(row => `
+            <div class="rl-flow-group">
+              <div class="rl-flow-group-head">
+                <div><span class="rl-category-pill">${row[0]}</span> <span>${row[1]}</span></div>
+                <svg class="icon" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"></path></svg>
+              </div>
+            </div>
+          `).join('')}
+        </section>
+      `;
+    }
+
+    function txnExposureEntities() {
+      return [
+        { name: 'Hot_Address_Initial_Exposure', proximity: 'Counterparty', contribution: '0%', value: '$0.0023' },
+        { name: 'Roobet', proximity: 'Counterparty', contribution: '3.26%', value: '$65.2427' },
+        { name: 'Stakecom', proximity: 'Counterparty', contribution: '57.57%', value: '$1,151.4304' }
+      ];
+    }
+
+    function txnIllicitExposureEntities() {
+      return [
+        { name: 'Mixer_Deposit_Cluster', proximity: 'Indirect · 2 hops', contribution: '18.42%', value: '$368.40' },
+        { name: 'Darknet_Service_Wallet', proximity: 'Indirect · 3 hops', contribution: '7.85%', value: '$157.00' },
+        { name: 'High_Risk_Bridge_Route', proximity: 'Counterparty', contribution: '2.14%', value: '$42.80' }
+      ];
+    }
+
+    function txnRuleGroups() {
+      const entities = txnExposureEntities();
+      const illicitEntities = txnIllicitExposureEntities();
+      return [
+        { name: '资金拆分（规避阈值）', risk: 'moderate', ruleType: 'non-exposure', triggerReason: 'Risk rule triggered in deposit', keyIndicators: 'Structured deposit pattern', threshold: '2,000 USDT', observedValue: '2,000 USDT', exposure: '$1,216.6754', contribution: '60.83%', proximity: 'Counterparty', entities },
+        { name: '博彩资金暴露-入金 Gambling Exposure - Deposit', risk: 'moderate', ruleType: 'exposure', exposureCategory: 'Gambling Platform', triggerReason: 'Risk rule triggered in deposit', exposure: '$1,216.6754', contribution: '60.83%', proximity: 'Counterparty', entities },
+        { name: '非法活动(弱)-入金 Illicit Exposure - Minor (D)', risk: 'moderate', ruleType: 'exposure', exposureCategory: 'Illicit Services', triggerReason: 'Risk rule triggered in deposit', exposure: '$568.20', contribution: '28.41%', proximity: 'Indirect · 2-3 hops', entities: illicitEntities }
+      ];
+    }
+
+    function focusedFlowGraph(rules) {
+      const selectedRule = Number.isInteger(selectedTxnRuleIndex) ? rules[selectedTxnRuleIndex] : rules[0];
+      const selectedEntity = selectedGraphEntity;
+      const isExposureRule = selectedRule.ruleType === 'exposure';
+      const isFocusedPath = Boolean(selectedEntity);
+      const isExposureView = selectedGraphMode === 'exposure' && isExposureRule;
+      const displayGraphMode = !isExposureRule && !isFocusedPath ? 'default' : selectedGraphMode;
+      const graphTitle = isFocusedPath
+        ? `Focused path: ${selectedEntity.name}`
+        : isExposureView
+          ? `Showing exposure paths for ${selectedRule.name}`
+          : `Showing top ${selectedTopPaths === 'all' ? 'all' : selectedTopPaths} fund flow paths within ${selectedHopDepth} hops`;
+      const graphSubtitle = isFocusedPath
+        ? `${selectedRule.name} · ${selectedEntity.proximity} · ${selectedEntity.contribution} · ${selectedEntity.value}`
+        : isExposureView
+          ? `Exposure view · ${selectedRule.exposureCategory || 'Gambling Platform'} · ${selectedTopPaths === 'all' ? 'All paths' : `Top ${selectedTopPaths} paths`} within ${selectedHopDepth} hops`
+          : selectedRule.ruleType === 'non-exposure' && Number.isInteger(selectedTxnRuleIndex)
+            ? 'Non-exposure rule selected · Showing default fund flow view'
+            : `Default fund flow view · ${selectedTopPaths === 'all' ? 'All paths' : `Top ${selectedTopPaths} paths`}`;
+      const paths = selectedRule.entities.slice(0, selectedTopPaths === 'all' ? selectedRule.entities.length : Number(selectedTopPaths));
+      const activeIndex = selectedEntity ? paths.findIndex(entity => entity.name === selectedEntity.name) : -1;
+      const detailCard = selectedGraphDetail ? graphDetailCard(selectedGraphDetail, selectedRule) : `
+        <div class="txn-graph-detail-card">
+          <h4>Selected Detail</h4>
+          <div class="rl-small">Click an address, transaction, or entity to view details.</div>
+        </div>
+      `;
+      return `
+        <section class="txn-graph-panel ${graphFullscreen ? 'fullscreen' : ''}" id="focusedFlowGraph">
+          <div class="txn-graph-head">
+            <div>
+              <h3>${graphTitle}</h3>
+              <div class="txn-graph-subtitle">${graphSubtitle}</div>
+            </div>
+            <div class="txn-graph-controls">
+              <select class="txn-graph-select" data-graph-mode-select>
+                <option value="default" ${displayGraphMode === 'default' ? 'selected' : ''}>Default Fund Flow</option>
+                <option value="exposure" ${displayGraphMode === 'exposure' ? 'selected' : ''}>Exposure</option>
+                <option value="aggregated" ${displayGraphMode === 'aggregated' ? 'selected' : ''}>Aggregated</option>
+              </select>
+              <select class="txn-graph-select" data-hop-depth-select>
+                <option value="1" ${selectedHopDepth === '1' ? 'selected' : ''}>1 hop</option>
+                <option value="2" ${selectedHopDepth === '2' ? 'selected' : ''}>2 hops</option>
+                <option value="3" ${selectedHopDepth === '3' ? 'selected' : ''}>3 hops</option>
+                <option value="5" ${selectedHopDepth === '5' ? 'selected' : ''}>5 hops</option>
+              </select>
+              <select class="txn-graph-select" data-top-paths-select>
+                <option value="5" ${selectedTopPaths === '5' ? 'selected' : ''}>Top 5 paths</option>
+                <option value="10" ${selectedTopPaths === '10' ? 'selected' : ''}>Top 10 paths</option>
+                <option value="all" ${selectedTopPaths === 'all' ? 'selected' : ''}>All paths</option>
+              </select>
+              <button class="txn-graph-control" data-graph-action="fit" type="button">Fit View</button>
+              <button class="txn-graph-control" data-graph-action="fullscreen" type="button">${graphFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}</button>
+              <button class="txn-graph-control" data-graph-action="reset" title="Reset view" type="button">Reset</button>
+            </div>
+          </div>
+          <div class="txn-graph-canvas" data-graph-canvas>
+            <div class="txn-graph-stage" data-graph-stage style="transform: translate(${graphPanX}px, ${graphPanY}px) scale(${graphZoom})">
+            <button class="txn-node source txn-graph-clickable ${selectedGraphDetail && selectedGraphDetail.type === 'address' ? 'selected' : ''}" data-graph-detail="address" data-tooltip="Click for address detail" type="button">Screened Tx / Address</button>
+            ${paths.map((entity, index) => {
+              const active = activeIndex === index;
+              return `
+                <button class="txn-edge path-${index} txn-graph-clickable ${active ? 'selected' : ''}" data-graph-detail="transaction" data-graph-entity-index="${index}" data-tooltip="${entity.value} · ${entity.contribution}" type="button"></button>
+                <button class="txn-node target path-${index} risk txn-graph-clickable ${active || (selectedGraphDetail && selectedGraphDetail.type === 'entity' && selectedGraphDetail.entity.name === entity.name) ? 'selected' : ''}" data-graph-detail="entity" data-graph-entity-index="${index}" data-tooltip="${entity.name}" type="button">${entity.name}</button>
+              `;
+            }).join('')}
+            <div class="txn-graph-caption">${displayGraphMode === 'default' ? 'Default Fund Flow' : displayGraphMode === 'exposure' ? 'Exposure' : 'Aggregated'} view · ${selectedHopDepth} hops · ${selectedTopPaths === 'all' ? 'All paths' : `Top ${selectedTopPaths} paths`}</div>
+          </div>
+          ${detailCard}
+        </section>
+      `;
+    }
+
+    function graphDetailCard(detail, rule) {
+      if (detail.type === 'address') {
+        return `
+          <div class="txn-graph-detail-card">
+            <h4>Address Detail</h4>
+            <div class="txn-graph-detail-grid">
+              <div><span>Address</span><strong>Screened Tx / Address</strong></div>
+              <div><span>Entity Name</span><strong>0xe908457ba7ea40e9b534e4993aa43e674300e4b4</strong></div>
+              <div><span>Entity Category</span><strong>${rule.exposureCategory || 'Gambling Platform'}</strong></div>
+              <div><span>Risk Level</span><strong>${rule.risk.toUpperCase()}</strong></div>
+              <div><span>Closest Proximity</span><strong>Source</strong></div>
+              <div><span>Contribution</span><strong>${rule.contribution}</strong></div>
+              <div><span>Exposure Value</span><strong>${rule.exposure}</strong></div>
+            </div>
+          </div>
+        `;
+      }
+      if (detail.type === 'transaction') {
+        return `
+          <div class="txn-graph-detail-card">
+            <h4>Transaction Detail</h4>
+            <div class="txn-graph-detail-grid">
+              <div><span>Tx Hash</span><strong>0xf9b4acf5...7d036295</strong></div>
+              <div><span>Direction</span><strong>Deposit</strong></div>
+              <div><span>Asset</span><strong>USDT</strong></div>
+              <div><span>Amount</span><strong>${detail.entity.value}</strong></div>
+              <div><span>From</span><strong>Screened Tx / Address</strong></div>
+              <div><span>To</span><strong>${detail.entity.name}</strong></div>
+              <div><span>Timestamp</span><strong>13-Oct-2025 15:49</strong></div>
+              <div><span>Path Role</span><strong>Exposure Edge</strong></div>
+            </div>
+          </div>
+        `;
+      }
+      return `
+        <div class="txn-graph-detail-card">
+          <h4>Entity Detail</h4>
+          <div class="txn-graph-detail-grid">
+            <div><span>Entity Name</span><strong>${detail.entity.name}</strong></div>
+            <div><span>Entity Category</span><strong>${rule.exposureCategory || 'Gambling Platform'}</strong></div>
+            <div><span>Contribution</span><strong>${detail.entity.contribution}</strong></div>
+            <div><span>Exposure Value</span><strong>${detail.entity.value}</strong></div>
+            <div><span>Closest Proximity</span><strong>${detail.entity.proximity}</strong></div>
+            <div><span>Path</span><strong>Screened Tx / Address -> ${detail.entity.name}</strong></div>
+          </div>
+        </div>
+      `;
+    }
+
+    function graphDetailCardV2(detail, rule, context) {
+      if (detail.type === 'source') {
+        return `
+          <div class="txn-graph-detail-card">
+            <h4>Source Address / Entity</h4>
+            <div class="txn-graph-detail-grid">
+              <div><span>Address</span><strong>${context.fromAddress}</strong></div>
+              <div><span>Entity Name</span><strong>${context.fromEntity}</strong></div>
+              <div><span>Entity Category</span><strong>${context.fromCategory}</strong></div>
+              <div><span>Risk Level</span><strong>LOW</strong></div>
+            </div>
+          </div>
+        `;
+      }
+      if (detail.type === 'output') {
+        return `
+          <div class="txn-graph-detail-card">
+            <h4>Output Address / Entity</h4>
+            <div class="txn-graph-detail-grid">
+              <div><span>Output Address</span><strong>${context.outputAddress}</strong></div>
+              <div><span>Entity Name</span><strong>${context.outputEntity}</strong></div>
+              <div><span>Entity Category</span><strong>${context.outputCategory}</strong></div>
+              <div><span>Risk Level</span><strong>${context.risk.toUpperCase()}</strong></div>
+            </div>
+          </div>
+        `;
+      }
+      if (detail.type === 'intermediary') {
+        return `
+          <div class="txn-graph-detail-card">
+            <h4>Intermediary Detail</h4>
+            <div class="txn-graph-detail-grid">
+              <div><span>Path Role</span><strong>Intermediary</strong></div>
+              <div><span>Closest Proximity</span><strong>${detail.entity ? detail.entity.proximity : 'Indirect'}</strong></div>
+              <div><span>Rule</span><strong>${rule.name}</strong></div>
+            </div>
+          </div>
+        `;
+      }
+      if (detail.type === 'transaction') {
+        const amount = detail.entity ? detail.entity.value : context.amount;
+        const to = detail.entity ? detail.entity.name : context.outputAddress;
+        const pathRole = detail.entity ? 'Exposure Edge' : 'Screened Transaction';
+        return `
+          <div class="txn-graph-detail-card">
+            <h4>Transaction Detail</h4>
+            <div class="txn-graph-detail-grid">
+              <div><span>Tx Hash</span><strong>${context.txHash}</strong></div>
+              <div><span>Direction</span><strong>${context.direction}</strong></div>
+              <div><span>Asset</span><strong>${context.asset}</strong></div>
+              <div><span>Amount</span><strong>${amount}</strong></div>
+              <div><span>From</span><strong>${context.fromAddress}</strong></div>
+              <div><span>To</span><strong>${to}</strong></div>
+              <div><span>Timestamp</span><strong>${context.timestamp}</strong></div>
+              <div><span>Path Role</span><strong>${pathRole}</strong></div>
+            </div>
+          </div>
+        `;
+      }
+      return `
+        <div class="txn-graph-detail-card">
+          <h4>Entity Detail</h4>
+          <div class="txn-graph-detail-grid">
+            <div><span>Entity Name</span><strong>${detail.entity.name}</strong></div>
+            <div><span>Entity Category</span><strong>${rule.exposureCategory || 'Gambling Platform'}</strong></div>
+            <div><span>Contribution</span><strong>${detail.entity.contribution}</strong></div>
+            <div><span>Exposure Value</span><strong>${detail.entity.value}</strong></div>
+            <div><span>Closest Proximity</span><strong>${detail.entity.proximity}</strong></div>
+            <div><span>Path</span><strong>${context.outputAddress} -> ${detail.entity.name}</strong></div>
+          </div>
+        </div>
+      `;
+    }
+
+    function focusedFlowGraphV2(rules, context) {
+      const selectedRule = Number.isInteger(selectedTxnRuleIndex) ? rules[selectedTxnRuleIndex] : rules[0];
+      const selectedEntity = selectedGraphEntity;
+      const isFocusedPath = Boolean(selectedEntity);
+      const pathLimitLabel = selectedTopPaths === 'all' ? 'All paths' : 'Top ' + selectedTopPaths + ' paths';
+      const graphTitle = isFocusedPath ? `Focused path: ${selectedEntity.name}` : 'Screened Transaction Path';
+      const graphSubtitle = isFocusedPath
+        ? `${selectedEntity.proximity} · ${selectedEntity.contribution} · ${selectedEntity.value}`
+        : 'Showing the current transaction from source to output address';
+      const detailCard = selectedGraphDetail ? graphDetailCardV2(selectedGraphDetail, selectedRule, context) : `
+        <div class="txn-graph-detail-card">
+          <h4>Selected Detail</h4>
+          <div class="rl-small">Click a from address, transaction arrow, output address, or entity to view details.</div>
+        </div>
+      `;
+      const entityIndex = selectedEntity ? selectedRule.entities.findIndex(entity => entity.name === selectedEntity.name) : -1;
+      const isIndirectPath = selectedEntity && /Indirect|hops/i.test(selectedEntity.proximity);
+      const focusedGraph = isFocusedPath ? `
+            <button class="txn-node source txn-graph-clickable ${selectedGraphDetail && selectedGraphDetail.type === 'output' ? 'selected' : ''}" data-graph-detail="output" data-tooltip="Output address detail" type="button">Output Address / Screened Tx</button>
+            ${isIndirectPath ? `<button class="txn-node middle risk txn-graph-clickable ${selectedGraphDetail && selectedGraphDetail.type === 'intermediary' ? 'selected' : ''}" data-graph-detail="intermediary" data-graph-entity-index="${entityIndex > -1 ? entityIndex : 0}" data-tooltip="Intermediary route" type="button">Intermediary</button>` : ''}
+            <button class="txn-edge ${isIndirectPath ? 'one' : 'main'} txn-graph-clickable selected" data-graph-detail="transaction" data-graph-entity-index="${entityIndex > -1 ? entityIndex : 0}" data-tooltip="${selectedEntity.value} · ${selectedEntity.contribution}" type="button"><span class="txn-edge-label">${selectedEntity.value}<small>${selectedEntity.contribution}</small></span></button>
+            ${isIndirectPath ? `<button class="txn-edge two txn-graph-clickable selected" data-graph-detail="transaction" data-graph-entity-index="${entityIndex > -1 ? entityIndex : 0}" data-tooltip="${selectedEntity.value} · ${selectedEntity.contribution}" type="button"></button>` : ''}
+            <button class="txn-node target risk txn-graph-clickable selected" data-graph-detail="entity" data-graph-entity-index="${entityIndex > -1 ? entityIndex : 0}" data-tooltip="${selectedEntity.name}" type="button">${selectedEntity.name}</button>
+      ` : `
+            <button class="txn-node source txn-graph-clickable ${selectedGraphDetail && selectedGraphDetail.type === 'source' ? 'selected' : ''}" data-graph-detail="source" data-tooltip="From address detail" type="button">From Address</button>
+            <button class="txn-edge main txn-graph-clickable ${selectedGraphDetail && selectedGraphDetail.type === 'transaction' ? 'selected' : ''}" data-graph-detail="transaction" data-tooltip="${context.amount} · ${context.chain} · ${context.direction}" type="button"><span class="txn-edge-label">${context.amount}<small>${context.chain} · ${context.direction}</small></span></button>
+            <button class="txn-node target risk txn-graph-clickable ${selectedGraphDetail && selectedGraphDetail.type === 'output' ? 'selected' : ''}" data-graph-detail="output" data-tooltip="Output entity detail" type="button">Output Address / Entity</button>
+      `;
+      return `
+        <section class="txn-graph-panel" id="focusedFlowGraph">
+          <div class="txn-graph-head">
+            <div>
+              <h3>${graphTitle}</h3>
+              <div class="txn-graph-subtitle">${graphSubtitle}</div>
+            </div>
+            <div class="txn-graph-controls">
+              <select class="txn-graph-select" data-hop-depth-select>
+                <option value="1" ${selectedHopDepth === '1' ? 'selected' : ''}>1 hop</option>
+                <option value="2" ${selectedHopDepth === '2' ? 'selected' : ''}>2 hops</option>
+                <option value="3" ${selectedHopDepth === '3' ? 'selected' : ''}>3 hops</option>
+                <option value="5" ${selectedHopDepth === '5' ? 'selected' : ''}>5 hops</option>
+              </select>
+              <select class="txn-graph-select" data-top-paths-select>
+                <option value="5" ${selectedTopPaths === '5' ? 'selected' : ''}>Top 5 paths</option>
+                <option value="10" ${selectedTopPaths === '10' ? 'selected' : ''}>Top 10 paths</option>
+                <option value="all" ${selectedTopPaths === 'all' ? 'selected' : ''}>All paths</option>
+              </select>
+              <button class="txn-graph-control" data-graph-action="fit" type="button">Fit View</button>
+              <button class="txn-graph-control" data-graph-action="fullscreen" type="button">${graphFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}</button>
+              <button class="txn-graph-control" data-graph-action="reset" title="Reset view" type="button">Reset</button>
+            </div>
+          </div>
+          <div class="txn-graph-canvas">
+            ${focusedGraph}
+            <div class="txn-graph-caption">${isFocusedPath ? 'Focused entity path' : 'Screened transaction path'} · ${selectedHopDepth} hops · ${pathLimitLabel}</div>
+          </div>
+          ${detailCard}
+        </section>
+      `;
+    }
+
+    function focusedFlowGraphV3(rules, context) {
+      const selectedRule = Number.isInteger(selectedTxnRuleIndex) ? rules[selectedTxnRuleIndex] : rules[0];
+      const selectedEntity = selectedGraphEntity;
+      const pathLimitLabel = selectedTopPaths === 'all' ? 'All paths' : 'Top ' + selectedTopPaths + ' paths';
+      const graphSubtitle = selectedEntity
+        ? `Highlighted path: ${selectedEntity.name} · ${selectedEntity.proximity} · ${selectedEntity.contribution} · ${selectedEntity.value}`
+        : `Showing top ${selectedTopPaths === 'all' ? 'all' : selectedTopPaths} related paths within ${selectedHopDepth} hops`;
+      const detailCard = selectedGraphDetail ? graphDetailCardV2(selectedGraphDetail, selectedRule, context) : `
+        <div class="txn-graph-detail-card">
+          <h4>Selected Detail</h4>
+          <div class="rl-small">Click an output address, path, or entity to view details.</div>
+        </div>
+      `;
+      const paths = selectedRule.entities.slice(0, selectedTopPaths === 'all' ? selectedRule.entities.length : Number(selectedTopPaths));
+      const graphBranches = paths.map((entity, index) => {
+        const active = selectedEntity && selectedEntity.name === entity.name;
+        const dim = selectedEntity && !active;
+        const selectedByDetail = selectedGraphDetail && selectedGraphDetail.type === 'entity' && selectedGraphDetail.entity && selectedGraphDetail.entity.name === entity.name;
+        return `
+          <button class="txn-edge path-${index} txn-graph-clickable ${active ? 'selected' : ''} ${dim ? 'dim' : ''}" data-graph-detail="transaction" data-graph-entity-index="${index}" data-tooltip="${entity.value} · ${entity.contribution}" type="button"></button>
+          <button class="txn-node target path-${index} risk txn-graph-clickable ${active || selectedByDetail ? 'selected' : ''} ${dim ? 'dim' : ''}" data-graph-detail="entity" data-graph-entity-index="${index}" data-tooltip="${entity.name}" type="button">${entity.name}</button>
+        `;
+      }).join('');
+      return `
+        <section class="txn-graph-panel ${graphFullscreen ? 'fullscreen' : ''}" id="focusedFlowGraph">
+          <div class="txn-graph-head">
+            <div>
+              <h3>Related Fund Flow Paths</h3>
+              <div class="txn-graph-subtitle">${graphSubtitle}</div>
+            </div>
+            <div class="txn-graph-controls">
+              <select class="txn-graph-select" data-hop-depth-select>
+                <option value="1" ${selectedHopDepth === '1' ? 'selected' : ''}>1 hop</option>
+                <option value="2" ${selectedHopDepth === '2' ? 'selected' : ''}>2 hops</option>
+                <option value="3" ${selectedHopDepth === '3' ? 'selected' : ''}>3 hops</option>
+                <option value="5" ${selectedHopDepth === '5' ? 'selected' : ''}>5 hops</option>
+              </select>
+              <select class="txn-graph-select" data-top-paths-select>
+                <option value="5" ${selectedTopPaths === '5' ? 'selected' : ''}>Top 5 paths</option>
+                <option value="10" ${selectedTopPaths === '10' ? 'selected' : ''}>Top 10 paths</option>
+                <option value="all" ${selectedTopPaths === 'all' ? 'selected' : ''}>All paths</option>
+              </select>
+              <button class="txn-graph-control" data-graph-action="fit" type="button">Fit View</button>
+              <button class="txn-graph-control" data-graph-action="fullscreen" type="button">${graphFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}</button>
+              <button class="txn-graph-control" data-graph-action="reset" title="Reset view" type="button">Reset</button>
+            </div>
+          </div>
+          <div class="txn-graph-canvas" data-graph-canvas>
+            <div class="txn-graph-stage" data-graph-stage style="transform: translate(${graphPanX}px, ${graphPanY}px) scale(${graphZoom})">
+            <button class="txn-node source txn-graph-clickable ${selectedGraphDetail && selectedGraphDetail.type === 'output' ? 'selected' : ''}" data-graph-detail="output" data-tooltip="Output address detail" type="button">Output Address / Screened Tx</button>
+            ${graphBranches}
+            </div>
+            <div class="txn-graph-hint">Drag to pan · Scroll to zoom · Click node to view details</div>
+            <div class="txn-graph-caption">Related paths · ${selectedHopDepth} hops · ${pathLimitLabel}</div>
+          </div>
+          ${detailCard}
+        </section>
+      `;
+    }
+
+    function txFundFlowPanel() {
+      const source = [
+        ['Gambling Platform', '60.83%', '$1,216.6754', '#6b83f6', '60.83%'],
+        ['Unknown', '29.60%', '$592.0515', '#8aa3ff', '29.60%'],
+        ['No-KYC Exchange', '4.54%', '$90.8595', '#a9bfff', '4.54%'],
+        ['Scam', '2.31%', '$46.2529', '#d1dcfb', '2.31%'],
+        ['DeFi Protocol', '2.04%', '$40.892', '#6b83f6', '2.04%'],
+        ['Centralized Exchange (CEX)', '0.38%', '$7.6745', '#8aa3ff', '0.38%'],
+        ['Bridge Protocol', '0.24%', '$4.8304', '#a9bfff', '0.24%'],
+        ['Blockchain Game', '0.04%', '$0.7838', '#d1dcfb', '0.04%'],
+        ['NFT Collection', '0.00%', '$0', '#6b83f6', '0.00%'],
+        ['DApp', '0.00%', '$0', '#8aa3ff', '0.00%']
+      ];
+      const legend = source.map(item => `
+        <div class="rl-flow-legend-item">
+          <i class="rl-flow-legend-dot" style="--c:${item[3]}"></i>
+          <div>${item[0]}&nbsp; ${item[1]}<span class="rl-flow-legend-value">${item[2]}</span></div>
+        </div>
+      `).join('');
+      return `
+        <div class="rl-flow-grid" style="grid-template-columns:1fr">
+          <article class="rl-flow-card source">
+            <h2 class="rl-flow-title">Source of Funds</h2>
+            <div class="rl-stacked-bar">${source.map(item => `<span style="--w:${item[4]};--c:${item[3]}"></span>`).join('')}</div>
+            <div class="rl-flow-legend">${legend}</div>
+          </article>
+        </div>
+        <section class="rl-flow-table-section">
+          <div class="rl-flow-group">
+            <div class="rl-flow-group-head">
+              <div><span class="rl-category-pill">Gambling Platform</span> <span>(3) $1,216.6754 / 60.83%</span></div>
+              <svg class="icon" viewBox="0 0 24 24"><path d="m18 15-6-6-6 6"></path></svg>
+            </div>
+            <div class="rl-table-wrap">
+              <table class="rl-table">
+                <thead><tr><th>Entity</th><th>Closest Proximity</th><th>Contribution</th><th class="rl-right">Value (USD)</th></tr></thead>
+                <tbody>
+                  ${[['Stakecom','57.57%','$1,151.4304'],['Roobet','3.26%','$65.2427'],['Hot_Address_Initial_Exposure','0%','$0.0023']].map(row => `
+                    <tr><td>${row[0]}</td><td>Counterparty</td><td class="rl-right">${row[1]}<br><span class="rl-small">counterparty - ${row[1]}<br>indirect - 0%</span></td><td class="rl-right">${row[2]}<br><span class="rl-small">counterparty - ${row[2]}<br>indirect - $0</span></td></tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      `;
+    }
+
+    function selectedRuleSummary(rules) {
+      const rule = Number.isInteger(selectedTxnRuleIndex) ? rules[selectedTxnRuleIndex] : rules[0];
+      const items = rule.ruleType === 'exposure'
+        ? [
+            ['Rule Name', rule.name],
+            ['Risk Level', rule.risk.toUpperCase()],
+            ['Trigger Reason', rule.triggerReason],
+            ['Exposure', rule.exposure],
+            ['Contribution', rule.contribution],
+            ['Closest Proximity', rule.proximity]
+          ]
+        : [
+            ['Rule Name', rule.name],
+            ['Risk Level', rule.risk.toUpperCase()],
+            ['Trigger Reason', rule.triggerReason],
+            ['Rule Type', 'Behavior / Transaction Pattern'],
+            ['Key Indicators', rule.keyIndicators],
+            ['Threshold', rule.threshold],
+            ['Observed Value', rule.observedValue]
+          ];
+      return `
+        <section class="txn-rule-summary">
+          <div class="txn-rule-summary-head">
+            <h3>Selected Rule Summary</h3>
+            <span class="rl-badge ${rule.risk}">${rule.risk}</span>
+          </div>
+          <div class="txn-rule-summary-grid">
+            ${items.map(([label, value]) => `<div class="txn-rule-summary-item"><span>${label}</span><strong>${value || '-'}</strong></div>`).join('')}
+          </div>
+        </section>
+      `;
+    }
+
+    function txnDirectExposureTable(rules) {
+      const selectedRule = Number.isInteger(selectedTxnRuleIndex) ? rules[selectedTxnRuleIndex] : rules[0];
+      if (!selectedRule || selectedRule.ruleType !== 'exposure') {
+        return `
+          <section class="txn-exposure-section">
+            <h2 class="rl-exposure-title">Direct / Indirect Exposure</h2>
+            <div class="txn-graph-empty" style="min-height:120px">
+              <div style="text-align:center">
+                <strong style="display:block;color:#475569;margin-bottom:6px">No exposure breakdown is available for this rule.</strong>
+                <span class="rl-small">This rule is triggered by behavior or transaction pattern indicators.</span>
+              </div>
+            </div>
+          </section>
+        `;
+      }
+      const summary = selectedRule.name.includes('Illicit') || selectedRule.name.includes('非法活动')
+        ? '(3) $568.20 / 28.41%'
+        : '(3) $1,216.6754 / 60.83%';
+      return `
+        <section class="txn-exposure-section">
+          <h2 class="rl-exposure-title">Direct / Indirect Exposure</h2>
+          <div class="rl-accordion-head">
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+              <span class="rl-category-pill">${selectedRule.exposureCategory || 'Gambling Platform'}</span>
+              <span class="rl-small">${summary}</span>
+            </div>
+            <svg class="icon" viewBox="0 0 24 24"><path d="m19 9-7 7-7-7"></path></svg>
+          </div>
+          <div class="rl-table-wrap">
+            <table class="rl-table">
+              <thead><tr><th>Entity</th><th>Closest Proximity</th><th>Contribution</th><th class="rl-right">Value (USD)</th><th class="rl-right">Action</th></tr></thead>
+              <tbody>
+                ${selectedRule.entities.map((row, index) => {
+                  const active = selectedGraphEntity && selectedGraphEntity.name === row.name;
+                  return `
+                  <tr class="${active ? 'txn-entity-row active' : ''}">
+                    <td><strong>${row.name}</strong></td>
+                    <td>${row.proximity}</td>
+                    <td class="rl-right">${row.contribution}<br><span class="rl-small">counterparty - ${row.contribution}<br>indirect - 0%</span></td>
+                    <td class="rl-right"><strong>${row.value}</strong><br><span class="rl-small">counterparty - ${row.value}<br>indirect - $0</span></td>
+                    <td class="rl-right"><button class="txn-graph-btn" data-exposure-entity-index="${index}" type="button">${active ? 'Viewing' : 'View Graph'}</button></td>
+                  </tr>
+                `;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      `;
+    }
+
+    function applyGraphTransform() {
+      const stage = qs('[data-graph-stage]');
+      if (stage) stage.style.transform = `translate(${graphPanX}px, ${graphPanY}px) scale(${graphZoom})`;
+      const caption = qs('.txn-graph-caption');
+      if (caption) {
+        const pathLimitLabel = selectedTopPaths === 'all' ? 'All paths' : 'Top ' + selectedTopPaths + ' paths';
+        caption.textContent = `Related paths · ${selectedHopDepth} hops · ${pathLimitLabel} · ${Math.round(graphZoom * 100)}%`;
+      }
+    }
+
+    function fitGraphView() {
+      graphZoom = 1;
+      graphPanX = 0;
+      graphPanY = 0;
+      applyGraphTransform();
+    }
+
+    function bindGraphViewer() {
+      const canvas = qs('[data-graph-canvas]');
+      if (!canvas) return;
+      const hint = qs('.txn-graph-hint');
+      if (hint) hint.textContent = 'Drag to pan · Scroll to zoom · Click node to view details';
+      applyGraphTransform();
+      canvas.addEventListener('pointerdown', (event) => {
+        if (event.target.closest('.txn-graph-clickable')) return;
+        graphDragging = true;
+        graphDragStart = { x: event.clientX, y: event.clientY, panX: graphPanX, panY: graphPanY };
+        canvas.classList.add('dragging');
+        canvas.setPointerCapture?.(event.pointerId);
+      });
+      canvas.addEventListener('pointermove', (event) => {
+        if (!graphDragging || !graphDragStart) return;
+        graphPanX = graphDragStart.panX + event.clientX - graphDragStart.x;
+        graphPanY = graphDragStart.panY + event.clientY - graphDragStart.y;
+        applyGraphTransform();
+      });
+      const endDrag = (event) => {
+        graphDragging = false;
+        graphDragStart = null;
+        canvas.classList.remove('dragging');
+        if (event && canvas.hasPointerCapture?.(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
+      };
+      canvas.addEventListener('pointerup', endDrag);
+      canvas.addEventListener('pointercancel', endDrag);
+      canvas.addEventListener('pointerleave', endDrag);
+      canvas.addEventListener('wheel', (event) => {
+        event.preventDefault();
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = event.clientX - rect.left;
+        const mouseY = event.clientY - rect.top;
+        const oldZoom = graphZoom;
+        const nextZoom = Math.max(0.5, Math.min(2.5, oldZoom * (event.deltaY < 0 ? 1.12 : 0.88)));
+        const worldX = (mouseX - graphPanX) / oldZoom;
+        const worldY = (mouseY - graphPanY) / oldZoom;
+        graphZoom = nextZoom;
+        graphPanX = mouseX - worldX * nextZoom;
+        graphPanY = mouseY - worldY * nextZoom;
+        applyGraphTransform();
+      }, { passive: false });
+    }
+
+    function bindDetailCommon(item) {
+      qs('#breadcrumbList').addEventListener('click', () => {
+        selectedDetailId = null;
+        selectedHistorySnapshot = null;
+        selectedGraphEntity = null;
+        selectedTxnRuleIndex = null;
+        selectedGraphDetail = null;
+        detailTab = 'rules';
+        activePage = item.kind === 'transaction' ? 'ctmonitor' : 'ctcheck';
+        render();
+      });
+      const breadcrumbCurrent = qs('#breadcrumbCurrent');
+      if (breadcrumbCurrent) {
+        breadcrumbCurrent.addEventListener('click', () => {
+          selectedHistorySnapshot = null;
+          selectedGraphEntity = null;
+          selectedTxnRuleIndex = null;
+          selectedGraphDetail = null;
+          detailTab = 'rules';
+          renderDetail(item.id);
+        });
+      }
+      const copyBtn = qs('#copyAddress');
+      if (copyBtn) copyBtn.addEventListener('click', () => showToast(item.kind === 'transaction' ? 'Transaction hash copied' : 'Address copied'));
+      const explorerBtn = qs('#openExplorer');
+      if (explorerBtn) explorerBtn.addEventListener('click', () => showToast('Explorer link opened'));
+      qsa('[data-copy-label]').forEach(btn => {
+        btn.addEventListener('click', (event) => {
+          event.stopPropagation();
+          showToast(btn.dataset.copyLabel || 'Copied');
+        });
+      });
+      qsa('[data-detail-tab]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          detailTab = btn.dataset.detailTab;
+          if (detailTab !== 'rules') {
+            selectedTxnRuleIndex = null;
+            selectedGraphEntity = null;
+            selectedGraphDetail = null;
+          }
+          renderDetail(item.id);
+        });
+      });
+      qsa('.history-link').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const rows = screeningHistoryRows(item.kind);
+          const snapshot = rows[Number(btn.dataset.historyIndex)] || rows[0];
+          selectedHistorySnapshot = { ...snapshot, id: btn.dataset.id || item.id };
+          selectedDetailId = btn.dataset.id || item.id;
+          selectedGraphEntity = null;
+          selectedTxnRuleIndex = null;
+          selectedGraphDetail = null;
+          detailTab = 'rules';
+          renderDetail(selectedDetailId);
+        });
+      });
+      qsa('[data-rule-index]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          selectedTxnRuleIndex = Number(btn.dataset.ruleIndex);
+          selectedGraphEntity = null;
+          selectedGraphDetail = null;
+          renderDetail(item.id);
+        });
+      });
+      qsa('[data-exposure-entity-index]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const entityIndex = Number(btn.dataset.exposureEntityIndex);
+          const rule = txnRuleGroups()[Number.isInteger(selectedTxnRuleIndex) ? selectedTxnRuleIndex : 0];
+          if (!Number.isInteger(selectedTxnRuleIndex)) selectedTxnRuleIndex = 0;
+          selectedGraphEntity = rule ? rule.entities[entityIndex] : null;
+          selectedGraphDetail = selectedGraphEntity ? { type: 'entity', entity: selectedGraphEntity } : null;
+          renderDetail(item.id);
+          setTimeout(() => qs('#focusedFlowGraph')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 0);
+        });
+      });
+      qsa('[data-graph-detail]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const type = btn.dataset.graphDetail;
+          const entityIndex = Number(btn.dataset.graphEntityIndex);
+          const rule = txnRuleGroups()[Number.isInteger(selectedTxnRuleIndex) ? selectedTxnRuleIndex : 0];
+          const entity = Number.isInteger(entityIndex) ? rule.entities[entityIndex] : null;
+          if (!Number.isInteger(selectedTxnRuleIndex)) selectedTxnRuleIndex = 0;
+          if (entity) selectedGraphEntity = entity;
+          selectedGraphDetail = type === 'address' ? { type } : { type, entity };
+          renderDetail(item.id);
+        });
+      });
+      qsa('[data-hop-depth-select]').forEach(select => {
+        select.addEventListener('change', () => {
+          selectedHopDepth = select.value;
+          renderDetail(item.id);
+        });
+      });
+      qsa('[data-top-paths-select]').forEach(select => {
+        select.addEventListener('change', () => {
+          selectedTopPaths = select.value;
+          renderDetail(item.id);
+        });
+      });
+      qsa('[data-graph-action]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (btn.dataset.graphAction === 'reset') {
+            selectedGraphEntity = null;
+            selectedGraphDetail = null;
+            graphZoom = 1;
+            graphPanX = 0;
+            graphPanY = 0;
+            selectedHopDepth = '5';
+            selectedTopPaths = '5';
+          } else if (btn.dataset.graphAction === 'fit') {
+            fitGraphView();
+            return;
+          } else if (btn.dataset.graphAction === 'fullscreen') {
+            graphFullscreen = !graphFullscreen;
+          } else {
+            showToast('Graph fullscreen simulated');
+          }
+          renderDetail(item.id);
+        });
+      });
+      bindGraphViewer();
+    }
+
+    function renderTransactionDetail(id) {
+      const item = tasks.find(task => task.id === id) || tasks.find(task => task.kind === 'transaction');
+      const snapshot = selectedHistorySnapshot && selectedHistorySnapshot.id === item.id ? selectedHistorySnapshot : null;
+      const detail = snapshot ? { ...item, risk: snapshot.risk, rules: snapshot.rules, screenedAt: snapshot.screenTime, updated: snapshot.screenTime, lastScreened: snapshot.screenTime } : item;
+      const fromAddress = detail.fromAddress || (String(detail.subject || '').startsWith('0x') ? shortHash(detail.subject) : '0x8f43a1...9c2d7b');
+      const fromEntity = detail.fromEntity || 'Binance Hot Wallet';
+      const fromCategory = detail.fromCategory || 'Centralized Exchange';
+      const graphContext = {
+        txHash: detail.subject,
+        fromAddress,
+        fromEntity,
+        fromCategory,
+        outputAddress: detail.outputAddress || '-',
+        outputEntity: detail.entity || '-',
+        outputCategory: detail.category || '-',
+        risk: detail.risk || 'moderate',
+        asset: 'USDT',
+        amount: detail.amount || '-',
+        chain: detail.chain || 'BSC',
+        direction: detail.direction || 'Deposit',
+        timestamp: detail.txTime || '-'
+      };
+      const rules = txnRuleGroups();
+      if (detailTab === 'rules' && !Number.isInteger(selectedTxnRuleIndex)) selectedTxnRuleIndex = 0;
+      qs('#topbarTitle').textContent = 'ChainTrust Console';
+      qs('#content').innerHTML = `
+        <section class="rl-page">
+          <nav class="rl-breadcrumb" aria-label="Breadcrumb">
+            <button id="breadcrumbList" type="button">Transactions Screening</button>
+            <span>/</span>
+            ${snapshot ? `<button id="breadcrumbCurrent" type="button">${detail.displaySubject || shortHash(detail.subject)}</button><span>/</span><span class="rl-breadcrumb-result">Screening History Result</span>` : `<span class="rl-breadcrumb-current">${detail.displaySubject || shortHash(detail.subject)}</span>`}
+          </nav>
+
+          <section class="txn-detail-card txn-risk-profile">
+            <div class="txn-detail-head">
+              <div>
+                <div class="txn-profile-kicker">Transaction Risk Profile</div>
+                <div class="txn-hash-line">${detail.subject}<button class="rl-copy" id="copyAddress" type="button" title="Copy transaction hash"><svg class="icon" viewBox="0 0 24 24"><path d="M8 16H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2"></path><rect x="8" y="8" width="12" height="12" rx="2"></rect></svg></button><button class="rl-copy" id="openExplorer" type="button" title="Open in explorer"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M2 12h20"></path><path d="M12 2a15.3 15.3 0 0 1 0 20"></path><path d="M12 2a15.3 15.3 0 0 0 0 20"></path></svg></button></div>
+                <div class="txn-profile-badges">
+                  <span class="rl-badge ${detail.risk}">${String(detail.risk || '').toUpperCase()}</span>
+                  <span class="txn-chip">${detail.chain}</span>
+                </div>
+              </div>
+              <div class="txn-screened-time">Screened Time: ${detail.screenedAt}</div>
+            </div>
+
+            <div class="txn-flow-strip" aria-label="Transaction flow summary">
+              <div class="txn-flow-node">
+                <span class="txn-flow-label">From Address / Entity</span>
+                <strong class="txn-flow-value"><span class="truncate">${fromAddress}</span><button class="rl-copy txn-mini-copy" data-copy-label="From address copied" type="button" title="Copy from address"><svg class="icon" viewBox="0 0 24 24"><path d="M8 16H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2"></path><rect x="8" y="8" width="12" height="12" rx="2"></rect></svg></button></strong>
+                <div class="txn-profile-badges" style="margin-top:10px">
+                  <span class="txn-chip neutral">${fromEntity}</span>
+                  <span class="txn-chip neutral">${fromCategory}</span>
+                </div>
+              </div>
+              <div class="txn-flow-edge">
+                <span>${detail.amount || '-'}</span>
+                <div class="txn-flow-arrow"></div>
+                <span>${detail.chain} · ${detail.direction || 'Deposit'}</span>
+              </div>
+              <div class="txn-flow-node risky">
+                <span class="txn-flow-label">Output Address / Entity</span>
+                <strong class="txn-flow-value"><span class="truncate">${detail.outputAddress || '-'}</span><button class="rl-copy txn-mini-copy" data-copy-label="Output address copied" type="button" title="Copy output address"><svg class="icon" viewBox="0 0 24 24"><path d="M8 16H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2"></path><rect x="8" y="8" width="12" height="12" rx="2"></rect></svg></button></strong>
+                <div class="txn-profile-badges" style="margin-top:10px">
+                  <span class="txn-chip neutral">${detail.entity || '-'}</span>
+                  <span class="txn-chip danger">${detail.category || '-'}</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <nav class="rl-tabs">
+            <button class="rl-tab ${detailTab === 'rules' ? 'active' : ''}" data-detail-tab="rules" type="button">Triggered Rules (deposit)</button>
+            <button class="rl-tab ${detailTab === 'flow' ? 'active' : ''}" data-detail-tab="flow" type="button">Fund Flow</button>
+            <button class="rl-tab ${detailTab === 'history' ? 'active' : ''}" data-detail-tab="history" type="button">Screening History</button>
+          </nav>
+
+          ${detailTab === 'rules' ? `
+            <section class="txn-rule-stack">
+              ${focusedFlowGraphV3(rules, graphContext)}
+              <div class="txn-rule-grid">
+                ${rules.map((rule, index) => `
+                  <button class="txn-rule-card ${selectedTxnRuleIndex === index ? 'active' : ''}" data-rule-index="${index}" type="button">
+                    <div class="txn-rule-title"><h3>${rule.name}</h3><span class="rl-badge ${rule.risk}">${rule.risk}</span></div>
+                    <p class="rl-small">Risk rule triggered in deposit</p>
+                  </button>
+                `).join('')}
+              </div>
+              ${selectedRuleSummary(rules)}
+              ${txnDirectExposureTable(rules)}
+            </section>
+          ` : detailTab === 'flow' ? txFundFlowPanel() : screeningHistoryPanel(detail.kind, detail.id)}
+        </section>
+      `;
+      bindDetailCommon(item);
+    }
+
+    function renderDetail(id) {
+      const item = tasks.find(task => task.id === id) || tasks[0];
+      if (item.kind === 'transaction') return renderTransactionDetail(id);
+      const snapshot = selectedHistorySnapshot && selectedHistorySnapshot.id === item.id ? selectedHistorySnapshot : null;
+      const detail = snapshot ? { ...item, risk: snapshot.risk, rules: snapshot.rules, screenedAt: snapshot.screenTime, updated: snapshot.screenTime, lastScreened: snapshot.screenTime } : item;
+      const rules = (Array.isArray(detail.rules) ? detail.rules : [detail.rules || 'Pending'])
+        .filter((rule) => !String(rule).includes('平台冻结'));
+      const exposureCategory = detail.category && detail.category !== '-' ? detail.category : 'Uncategorized';
+      const dominantAsset = detail.chain === 'TRX' ? 'USDT' : detail.chain;
+      const dominantValue = detail.balance && detail.balance !== '$0' ? detail.balance : '$7.32';
+      qs('#topbarTitle').textContent = 'ChainTrust Console';
+      qs('#content').innerHTML = `
+        <section class="rl-page">
+          <nav class="rl-breadcrumb" aria-label="Breadcrumb">
+            <button id="breadcrumbList" type="button">${detail.kind === 'transaction' ? 'Transactions Screening' : 'Address Screening'}</button>
+            <span>/</span>
+            ${snapshot ? `<button id="breadcrumbCurrent" type="button">${detail.displaySubject || shortHash(detail.subject)}</button><span>/</span><span class="rl-breadcrumb-result">Screening History Result</span>` : `<span class="rl-breadcrumb-current">${detail.displaySubject || shortHash(detail.subject)}</span>`}
+          </nav>
+
+          <section class="rl-hero" style="margin-top:16px">
+            <div class="rl-hero-top">
+              <div>
+                <div class="rl-address-line">
+                  <h1 class="rl-address">${detail.subject}</h1>
+                  <button class="rl-copy" id="copyAddress" type="button" title="Copy address">
+                    <svg class="icon" viewBox="0 0 24 24"><path d="M8 16H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2"></path><rect x="8" y="8" width="12" height="12" rx="2"></rect></svg>
+                  </button>
+                </div>
+                <div class="rl-meta">
+                  <span class="rl-badge ${detail.risk}">${detail.risk}</span>
+                  <span class="rl-chip">${detail.chain}</span>
+                </div>
+              </div>
+              <div class="rl-last">Screened Time: ${detail.screenedAt}</div>
+            </div>
+          </section>
+
+          <div class="rl-grid rl-three">
+            <article class="rl-card rl-card-pad">
+              <div class="rl-card-title">
+                <span class="rl-title-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"></path><path d="M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2"></path></svg></span>
+                Txn Information
+              </div>
+              <div class="rl-kv-stack">
+                <div class="rl-kv"><label>Tx count total</label><strong>${detail.txCount}</strong></div>
+                <div>
+                  <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:8px">
+                    <div class="rl-kv"><label>Total Outflow</label><strong>${detail.outflow}</strong></div>
+                    <div class="rl-kv" style="text-align:right"><label>Total Inflow</label><strong>${detail.inflow}</strong></div>
+                  </div>
+                  <div class="rl-flow-bar"><span></span><span></span></div>
+                  <div style="display:flex;justify-content:space-between;margin-top:5px;color:#94a3b8;font-size:10px"><span>Outbound</span><span>Inbound</span></div>
+                </div>
+              </div>
+            </article>
+
+            <article class="rl-card rl-card-pad">
+              <div class="rl-card-title">
+                <span class="rl-title-icon"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M12 8h.01"></path><path d="M11 12h1v4h1"></path></svg></span>
+                Entity Information
+              </div>
+              <div class="rl-entity-lockup">
+                <div class="rl-entity-avatar">${detail.entity && detail.entity !== '-' ? detail.entity.slice(0, 3).toUpperCase() : 'N/A'}</div>
+                <div class="rl-kv-stack" style="flex:1">
+                  <div class="rl-kv"><label>Entity Name</label><strong>${detail.entity}</strong></div>
+                  <div class="rl-kv"><label>Entity Category</label><span class="rl-chip">${exposureCategory}</span></div>
+                </div>
+              </div>
+            </article>
+
+            <article class="rl-card rl-card-pad">
+              <div class="rl-card-title">Balance Overview</div>
+              <div class="rl-donut-layout">
+                <div class="rl-donut">
+                  <svg viewBox="0 0 36 36">
+                    <circle cx="18" cy="18" r="15.9" fill="none" stroke="#e2e8f0" stroke-width="3.5"></circle>
+                    <circle cx="18" cy="18" r="15.9" fill="none" stroke="#3b82f6" stroke-width="3.5" stroke-dasharray="60 100" stroke-dashoffset="0"></circle>
+                    <circle cx="18" cy="18" r="15.9" fill="none" stroke="#6366f1" stroke-width="3.5" stroke-dasharray="25 100" stroke-dashoffset="-60"></circle>
+                    <circle cx="18" cy="18" r="15.9" fill="none" stroke="#94a3b8" stroke-width="3.5" stroke-dasharray="15 100" stroke-dashoffset="-85"></circle>
+                  </svg>
+                  <div class="rl-donut-center"><span>Total Balance</span><strong>${dominantValue}</strong></div>
+                </div>
+                <div class="rl-token-list">
+                  <div class="rl-token-row"><span style="display:flex;align-items:center;gap:8px"><i class="rl-token-dot"></i>${dominantAsset}</span><div class="rl-bar"><i style="--w:60%;--c:#3b82f6"></i></div><strong>60%</strong><span>${dominantValue}</span></div>
+                  <div class="rl-token-row"><span style="display:flex;align-items:center;gap:8px"><i class="rl-token-dot" style="background:#6366f1"></i>ETH</span><div class="rl-bar"><i style="--w:25%;--c:#6366f1"></i></div><strong>25%</strong><span>$1.83</span></div>
+                  <div class="rl-token-row"><span style="display:flex;align-items:center;gap:8px"><i class="rl-token-dot" style="background:#94a3b8"></i>Others</span><div class="rl-bar"><i style="--w:15%;--c:#94a3b8"></i></div><strong>15%</strong><span>$1.10</span></div>
+                </div>
+              </div>
+            </article>
+          </div>
+
+          <nav class="rl-tabs">
+            <button class="rl-tab ${detailTab === 'rules' ? 'active' : ''}" data-detail-tab="rules" type="button">Triggered Rules</button>
+            <button class="rl-tab ${detailTab === 'flow' ? 'active' : ''}" data-detail-tab="flow" type="button">Fund Flow</button>
+            <button class="rl-tab ${detailTab === 'history' ? 'active' : ''}" data-detail-tab="history" type="button">Screening History</button>
+          </nav>
+
+          ${detailTab === 'rules' ? `
+            <div class="rl-grid rl-rules">
+              ${rules.length ? rules.map((rule) => `
+                <article class="rl-rule-card ${detail.risk}">
+                  <div class="rl-rule-head">
+                    <h3>${rule}</h3>
+                    <span class="rl-badge ${detail.risk}">${detail.risk}</span>
+                  </div>
+                  <p class="rl-small">Risk rule triggered in deposit</p>
+                </article>
+              `).join('') : '<div class="rl-empty">No triggered rules</div>'}
+            </div>
+          ` : detailTab === 'flow' ? fundFlowPanel() : screeningHistoryPanel(detail.kind, detail.id)}
+
+          ${detailTab === 'rules' ? `<section class="rl-exposure">
+            <div class="rl-exposure-body">
+              <h2 class="rl-exposure-title">Direct / Indirect Exposure</h2>
+              <div class="rl-accordion-head">
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                  <span class="rl-category-pill">${exposureCategory}</span>
+                  <span class="rl-small"><strong style="color:#334155">(4)</strong> $276,066.9254 / 40.31%</span>
+                </div>
+                <svg class="icon" viewBox="0 0 24 24"><path d="m19 9-7 7-7-7"></path></svg>
+              </div>
+              <div class="rl-table-wrap">
+                <table class="rl-table">
+                  <thead><tr><th>Entity</th><th>Closest Proximity</th><th>Contribution</th><th class="rl-right">Value (USD)</th></tr></thead>
+                  <tbody>
+                    ${exposureRows().map(row => `
+                      <tr>
+                        <td><strong>${row[0]}</strong></td>
+                        <td>${row[1]}</td>
+                        <td>
+                          <div class="rl-contribution">
+                            <strong>${row[2]}</strong>
+                            <div class="rl-bar" style="width:120px"><i style="--w:${row[2]};--c:#3b82f6"></i></div>
+                            <span class="rl-small">${row[4]}<br>${row[5]}</span>
+                          </div>
+                        </td>
+                        <td class="rl-right"><strong>${row[3]}</strong><br><span class="rl-small">counterparty - ${row[3]}<br>indirect - $0</span></td>
+                      </tr>
+                    `).join('')}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>` : ''}
+        </section>
+      `;
+      qs('#breadcrumbList').addEventListener('click', () => {
+        selectedDetailId = null;
+        selectedHistorySnapshot = null;
+        selectedGraphEntity = null;
+        detailTab = 'rules';
+        activePage = item.kind === 'transaction' ? 'ctmonitor' : 'ctcheck';
+        render();
+      });
+      const breadcrumbCurrent = qs('#breadcrumbCurrent');
+      if (breadcrumbCurrent) {
+        breadcrumbCurrent.addEventListener('click', () => {
+          selectedHistorySnapshot = null;
+          detailTab = 'rules';
+          renderDetail(item.id);
+        });
+      }
+      qs('#copyAddress').addEventListener('click', () => showToast('Address copied'));
+      qsa('[data-detail-tab]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          detailTab = btn.dataset.detailTab;
+          renderDetail(item.id);
+        });
+      });
+      qsa('.history-link').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const rows = screeningHistoryRows(item.kind);
+          const snapshot = rows[Number(btn.dataset.historyIndex)] || rows[0];
+          selectedHistorySnapshot = { ...snapshot, id: btn.dataset.id || item.id };
+          selectedDetailId = btn.dataset.id || item.id;
+          detailTab = 'rules';
+          renderDetail(selectedDetailId);
+        });
+      });
+    }
+
+    function renderScreening(kind) {
+      const subset = filteredTasks(kind);
+      const stats = [
+        { label: 'Total tasks', value: subset.length, color: '#4c6fff' },
+        { label: 'High risk', value: subset.filter(x => x.risk === 'high' || x.risk === 'severe').length, color: '#e35d4d' },
+        { label: 'Screening', value: subset.filter(x => x.status === 'screening').length, color: '#e8a42b' }
+      ];
+      qs('#content').innerHTML = header(stats) + filterPanel() + taskTable(kind);
+      bindPageActions();
+      bindFilters();
+    }
+
+    function renderOverview() {
+      qs('#content').innerHTML = `
+        <section class="overview-page">
+          <div class="overview-title-row">
+            <h1>Overview Dashboard</h1>
+            <button class="overview-range" type="button" id="overviewRange">Last 7 days <svg class="icon" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"></path></svg></button>
+          </div>
+
+          <section class="overview-metric-strip" aria-label="Monitoring totals">
+            <article class="overview-metric">
+              <div>
+                <span>Monitored Transactions</span>
+                <strong>12,842</strong>
+              </div>
+              <div class="overview-spark" aria-hidden="true">
+                <svg viewBox="0 0 180 84">
+                  <path d="M10 64 C26 80 35 46 46 30 C58 8 70 8 78 33 C88 67 102 78 116 48 C130 18 145 24 154 42 C162 57 168 63 174 70" fill="none" stroke="#6d8cff" stroke-width="5" stroke-linecap="round"></path>
+                  <path d="M8 72h164" stroke="#eef2ff" stroke-width="2"></path>
+                </svg>
+              </div>
+            </article>
+            <article class="overview-metric">
+              <div>
+                <span>Monitored Address</span>
+                <strong>72,232</strong>
+              </div>
+              <div class="overview-spark" aria-hidden="true">
+                <svg viewBox="0 0 180 84">
+                  <path d="M10 55 C22 42 34 28 48 52 C63 78 76 72 88 40 C100 8 118 9 128 40 C138 70 156 64 171 18" fill="none" stroke="#6d8cff" stroke-width="5" stroke-linecap="round"></path>
+                  <path d="M8 72h164" stroke="#eef2ff" stroke-width="2"></path>
+                </svg>
+              </div>
+            </article>
+          </section>
+
+          <section class="overview-grid">
+            <article class="overview-card">
+              <div class="overview-card-head">
+                <h2>Alert Distribution</h2>
+                <div class="overview-toggle" aria-label="Distribution type">
+                  <button class="active" type="button" data-overview-toggle="distribution">Txn</button>
+                  <button type="button" data-overview-toggle="distribution">Address</button>
+                </div>
+              </div>
+              <div class="overview-donut-layout">
+                <div class="overview-donut" aria-hidden="true"></div>
+                <div class="overview-legend">
+                  <div class="overview-legend-item" style="background:#eef3ff"><span><i class="risk-dot" style="background:#4f7cff"></i>Low</span><b>42%</b></div>
+                  <div class="overview-legend-item" style="background:#eefaff"><span><i class="risk-dot" style="background:#58c6df"></i>Moderate</span><b>14%</b></div>
+                  <div class="overview-legend-item" style="background:#fff7df"><span><i class="risk-dot" style="background:#f7bf21"></i>High</span><b>20%</b></div>
+                  <div class="overview-legend-item" style="background:#fff1ec"><span><i class="risk-dot" style="background:#ff642e"></i>Severe</span><b>24%</b></div>
+                </div>
+              </div>
+            </article>
+
+            <article class="overview-card">
+              <div class="overview-card-head">
+                <h2>Alert Trends</h2>
+                <div class="overview-toggle" aria-label="Trend type">
+                  <button class="active" type="button" data-overview-toggle="trend">Txn</button>
+                  <button type="button" data-overview-toggle="trend">Address</button>
+                </div>
+              </div>
+              <div class="overview-chart-legend">
+                <span><i class="risk-dot" style="background:#ff642e"></i>High &amp; Severe-Risk Tx Count</span>
+                <span><i class="risk-dot" style="background:#8b95a5"></i>% of Txn</span>
+              </div>
+              <div class="overview-chart-shell">
+                <svg class="overview-trend-svg" viewBox="0 0 640 260" role="img" aria-label="Alert trends chart">
+                  <g stroke="#edf2f7" stroke-width="1">
+                    <path d="M34 32H610"></path>
+                    <path d="M34 78H610"></path>
+                    <path d="M34 124H610"></path>
+                    <path d="M34 170H610"></path>
+                    <path d="M34 216H610"></path>
+                  </g>
+                  <path d="M46 142 C104 124 140 112 204 112 C270 112 332 116 386 124 C456 134 526 142 604 146" fill="none" stroke="#9aa4b2" stroke-width="4" stroke-linecap="round"></path>
+                  <path d="M46 176 C106 194 164 204 224 202 C286 200 340 184 396 154 C464 118 536 82 604 34" fill="none" stroke="#ff8a57" stroke-width="4" stroke-linecap="round"></path>
+                  ${['Jan 11','Jan 12','Jan 13','Jan 14','Jan 15','Jan 16','Jan 17'].map((d, i) => `<text x="${46 + i * 92}" y="246" fill="#a7b0be" font-size="13" font-weight="700">${d}</text>`).join('')}
+                </svg>
+              </div>
+            </article>
+          </section>
+
+          <section class="overview-card overview-table-card">
+            <div class="overview-card-head">
+              <h2>Recent High &amp; Severe Risk Transactions</h2>
+              <div class="overview-toggle" aria-label="Recent risk type">
+                <button class="active" type="button" data-overview-toggle="recent">Txn</button>
+                <button type="button" data-overview-toggle="recent">Address</button>
+              </div>
+            </div>
+            <table class="overview-risk-table">
+              <thead>
+                <tr>
+                  <th>TX Hash</th>
+                  <th>Risk Level</th>
+                  <th>Triggered Rules</th>
+                  <th>Value</th>
+                  <th>Chain</th>
+                  <th>Triggered Time</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span class="overview-hash">5a8d...f321</span></td>
+                  <td><span class="risk-dot" style="background:#ff642e"></span>Severe</td>
+                  <td><span class="overview-rule-chip">Mixer Usage</span> <span class="overview-rule-chip">+2</span></td>
+                  <td>$42,500.00</td>
+                  <td><span class="chain-pill"><span class="coin">B</span>BTC</span></td>
+                  <td>Jan 18, 16:45</td>
+                </tr>
+                <tr>
+                  <td><span class="overview-hash">9a1b...214d</span></td>
+                  <td><span class="risk-dot" style="background:#f7bf21"></span>High</td>
+                  <td><span class="overview-rule-chip">Illicit Activity</span></td>
+                  <td>$12,000.00</td>
+                  <td><span class="chain-pill eth"><span class="coin">E</span>Ethereum</span></td>
+                  <td>Jan 17, 16:45</td>
+                </tr>
+                <tr>
+                  <td><span class="overview-hash">2a4f...00c1</span></td>
+                  <td><span class="risk-dot" style="background:#ff642e"></span>Severe</td>
+                  <td><span class="overview-rule-chip">Illicit Activity</span></td>
+                  <td>$150,000.00</td>
+                  <td><span class="chain-pill bnb"><span class="coin">B</span>BNB</span></td>
+                  <td>Jan 7, 16:45</td>
+                </tr>
+              </tbody>
+            </table>
+          </section>
+        </section>
+      `;
+      qs('#overviewRange').addEventListener('click', () => showToast('Date range selector simulated'));
+      qsa('[data-overview-toggle]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const group = btn.dataset.overviewToggle;
+          qsa(`[data-overview-toggle="${group}"]`).forEach(item => item.classList.toggle('active', item === btn));
+          showToast(btn.textContent.trim() + ' view selected');
+        });
+      });
+    }
+
+    function renderAdmin() {
+      qs('#content').innerHTML = header([
+        { label: 'API calls', value: '84.2K', color: '#4c6fff' },
+        { label: 'Members', value: '12', color: '#2d9f63' },
+        { label: 'Usage', value: '68%', color: '#e8a42b' }
+      ]) + `
+        <section class="panel">
+          <div class="panel-body admin-grid">
+            ${[
+              ['API Keys', 'Create, rotate, and revoke application keys for screening endpoints.'],
+              ['Plan Usage', 'Track quota, throughput, and historical screening volume.'],
+              ['Roles', 'Configure admin, analyst, auditor, and member permissions.'],
+              ['Organization', 'Invite users, review account locks, and manage membership.']
+            ].map(([title, desc]) => `
+              <button class="admin-tile" type="button">
+                <span class="tile-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M15 7h.01"></path><path d="M10 12a5 5 0 1 1 3.5 1.5L6 21l-3-3 7.5-7.5A5 5 0 0 1 10 12Z"></path></svg></span>
+                <span><h3>${title}</h3><p>${desc}</p></span>
+              </button>
+            `).join('')}
+          </div>
+        </section>
+        <section class="panel">
+          <div class="panel-head"><h2>Risk Settings</h2><button class="chip-btn" id="saveSettings" type="button">Save changes</button></div>
+          <div class="panel-body">
+            <div style="display:flex;flex-wrap:wrap;gap:10px">
+              <button class="chip-btn active">CEX Interaction</button>
+              <button class="chip-btn active">Mixer Exposure</button>
+              <button class="chip-btn">Fast Turnover</button>
+              <button class="chip-btn active">Ransomware Exposure</button>
+              <button class="chip-btn">Burst Large Transfer</button>
+            </div>
+          </div>
+        </section>
+      `;
+      bindPageActions();
+      qs('#saveSettings').addEventListener('click', () => showToast('Risk settings saved'));
+      qsa('.admin-tile').forEach(tile => tile.addEventListener('click', () => showToast(tile.querySelector('h3').textContent + ' opened')));
+      qsa('.panel-body .chip-btn').forEach(btn => btn.addEventListener('click', () => btn.classList.toggle('active')));
+    }
+
+    function bindPageActions() {
+      const newBtn = qs('#newTaskBtn');
+      if (newBtn) newBtn.addEventListener('click', openModal);
+      const markAll = qs('#markAllBtn');
+      if (markAll) markAll.addEventListener('click', () => showToast('Activity marked as read'));
+      qsa('.rerun').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const item = tasks.find(x => x.id === btn.dataset.id);
+          if (item) {
+            item.status = 'screening';
+            item.progress = 12;
+            item.updated = 'just now';
+            showToast('Rescreen started for ' + item.id);
+            render();
+          }
+        });
+      });
+      const openDetail = (id) => {
+        if (!id) return;
+        selectedDetailId = id;
+        selectedHistorySnapshot = null;
+        selectedGraphEntity = null;
+        selectedTxnRuleIndex = null;
+        activePage = 'detail';
+        detailTab = 'rules';
+        render();
+      };
+      qsa('.view-detail').forEach(btn => {
+        btn.addEventListener('click', (event) => {
+          event.stopPropagation();
+          openDetail(btn.dataset.id);
+        });
+      });
+      qsa('.detail-row').forEach(row => {
+        row.addEventListener('click', () => {
+          openDetail(row.dataset.id);
+        });
+      });
+      qsa('.history-link').forEach(btn => {
+        btn.addEventListener('click', () => {
+          openDetail(btn.dataset.id);
+        });
+      });
+    }
+
+    function render() {
+      const titleMap = {
+        overview: 'Overview',
+        ctcheck: 'CT Check',
+        ctmonitor: 'CT Monitor',
+        admin: 'Administration',
+        detail: 'ChainTrust Console'
+      };
+      qs('#topbarTitle').textContent = titleMap[activePage] || 'Overview';
+      qsa('.nav-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.page === activePage || (activePage === 'detail' && btn.dataset.page === 'ctcheck')));
+      if (activePage === 'overview') return renderOverview();
+      if (activePage === 'detail') return renderDetail(selectedDetailId);
+      if (activePage === 'ctcheck') return renderScreening('address');
+      if (activePage === 'ctmonitor') return renderScreening('transaction');
+      renderAdmin();
+    }
+
+    function openModal() {
+      const meta = getPageMeta();
+      modalMode = meta.kind;
+      qs('#modalTitle').textContent = meta.action;
+      qs('#modalDescription').textContent = modalMode === 'transaction'
+        ? 'Submit a transaction hash, direction, and output address.'
+        : modalMode === 'admin'
+          ? 'Invite a teammate to the organization.'
+          : 'Submit a wallet address for CT Check screening.';
+
+      qs('#modalFields').innerHTML = modalMode === 'transaction' ? `
+        <div class="field"><label>Transaction hash</label><div class="input-shell"><input name="tx" required placeholder="0xbe129f2c1bc49cc92410dd0855af0ac4b47fb6362d31fc5c1e940672856535ac"></div></div>
+        <div class="field"><label>Direction</label><div class="input-shell"><select name="direction"><option>deposit</option><option>withdraw</option></select></div></div>
+        <div class="field"><label>Output address</label><div class="input-shell"><input name="address" required placeholder="0x1234567890abcdef1234567890abcdef12345678"></div></div>
+      ` : modalMode === 'admin' ? `
+        <div class="field"><label>Email</label><div class="input-shell"><input name="email" type="email" required placeholder="analyst@example.com"></div></div>
+        <div class="field"><label>Role</label><div class="input-shell"><select name="role"><option>analyst</option><option>auditor</option><option>member</option><option>admin</option></select></div></div>
+      ` : `
+        <div class="field"><label>Address</label><div class="input-shell"><input name="address" required placeholder="0x742d35Cc6634C0532925a3b844Bc9e7595f5bB32"></div></div>
+        <div class="field"><label>Chain</label><div class="input-shell"><select name="chain"><option>holistic</option><option>ETH</option><option>BTC</option><option>TRX</option><option>BSC</option></select></div></div>
+      `;
+      qs('#modalBackdrop').classList.remove('hide');
+      qs('#modalFields input, #modalFields textarea, #modalFields select')?.focus();
+    }
+
+    function closeModal() {
+      qs('#modalBackdrop').classList.add('hide');
+      qs('#screeningForm').reset();
+    }
+
+    function createTask(event) {
+      event.preventDefault();
+      if (modalMode === 'transaction') {
+        const tx = new FormData(event.target).get('tx') || '0x' + Math.random().toString(16).slice(2).padEnd(64, '0');
+        tasks.unshift({ id: 'TX-' + Math.floor(9100 + Math.random() * 99), kind: 'transaction', chain: 'ETH', subject: tx, entity: 'Pending classification', risk: 'moderate', status: 'screening', progress: 8, rules: 'Pending', value: '-', updated: 'just now' });
+      } else if (modalMode === 'address') {
+        const address = new FormData(event.target).get('address') || '0x0000000000000000000000000000000000000000';
+        tasks.unshift({ id: 'CT-' + Math.floor(1040 + Math.random() * 99), kind: 'address', chain: 'ETH', subject: address, entity: 'Pending classification', risk: 'low', status: 'screening', progress: 8, rules: 'Pending', value: '-', updated: 'just now' });
+      }
+      closeModal();
+      showToast(modalMode === 'admin' ? 'Invitation sent' : 'Task created');
+      render();
+    }
+
+    function startProgressLoop() {
+      setInterval(() => {
+        let changed = false;
+        tasks.forEach(item => {
+          if (item.status === 'screening') {
+            item.progress = Math.min(100, item.progress + Math.floor(5 + Math.random() * 12));
+            changed = true;
+            if (item.progress >= 100) {
+              item.status = 'completed';
+              item.risk = ['low', 'moderate', 'high'][Math.floor(Math.random() * 3)];
+              item.rules = item.risk === 'low' ? 'No hit' : 'Rule match +1';
+              item.updated = 'just now';
+            }
+          }
+        });
+        if (changed && !qs('#appView').classList.contains('hide')) render();
+      }, 2600);
+    }
+
+    qs('#loginForm').addEventListener('submit', (event) => {
+      event.preventDefault();
+      const error = qs('#loginError');
+      const errorText = error.querySelector('span');
+      const email = qs('#emailInput').value.trim();
+      const password = qs('#passwordInput').value.trim();
+      const mfaVisible = !qs('#mfaStep').classList.contains('hide');
+      error.classList.add('hide');
+
+      if (!mfaVisible) {
+        if (!email || !password) {
+          errorText.textContent = 'Email and password are required.';
+          error.classList.remove('hide');
+          return;
+        }
+        if (/locked/i.test(email)) {
+          errorText.textContent = 'Account locked. Please reset your password to continue.';
+          error.classList.remove('hide');
+          return;
+        }
+        qs('#credentialsStep').classList.add('hide');
+        qs('#mfaStep').classList.remove('hide');
+        qs('#authSubtitle').textContent = 'Enter your two-factor code';
+        qs('#loginButton').textContent = 'Verify and enter';
+        qs('#mfaInput').focus();
+        return;
+      }
+
+      if (qs('#mfaInput').value.trim().length !== 6) {
+        errorText.textContent = 'Enter any 6 digit verification code.';
+        error.classList.remove('hide');
+        return;
+      }
+      qs('#authView').classList.add('hide');
+      qs('#appView').classList.remove('hide');
+      render();
+      showToast('Signed in as Admin User');
+    });
+
+    qs('#forgotBtn').addEventListener('click', () => showToast('Password reset link simulated'));
+    qs('#logoutBtn').addEventListener('click', () => {
+      qs('#appView').classList.add('hide');
+      qs('#authView').classList.remove('hide');
+      qs('#credentialsStep').classList.remove('hide');
+      qs('#mfaStep').classList.add('hide');
+      qs('#authSubtitle').textContent = 'Sign in to continue';
+      qs('#loginButton').textContent = 'Sign in';
+      qs('#mfaInput').value = '';
+    });
+    qs('#themeBtn').addEventListener('click', () => document.body.classList.toggle('dark'));
+    qs('#exportBtn').addEventListener('click', () => showToast('CSV export simulated'));
+    qs('#modalClose').addEventListener('click', closeModal);
+    qs('#cancelModal').addEventListener('click', closeModal);
+    qs('#modalBackdrop').addEventListener('click', (event) => {
+      if (event.target.id === 'modalBackdrop') closeModal();
+    });
+    qs('#screeningForm').addEventListener('submit', createTask);
+    qsa('.nav-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+      activePage = btn.dataset.page;
+        selectedDetailId = null;
+        selectedHistorySnapshot = null;
+        selectedGraphEntity = null;
+        selectedTxnRuleIndex = null;
+        search = '';
+        filters = { risk: 'all', status: 'all', category: 'all' };
+        render();
+      });
+    });
+
+    render();
+    startProgressLoop();
+  </script>
+</body>
+</html>
